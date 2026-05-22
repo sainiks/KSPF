@@ -76,6 +76,7 @@ interface AnimatedBone {
 const COLOR_OBSIDIAN = new THREE.Color('#3d3d3d')
 const COLOR_HIGH_TECH_DARK = new THREE.Color('#0a0a10')
 const COLOR_BLACK = new THREE.Color('#000000')
+const COLOR_WHITE = new THREE.Color('#ffffff')
 
 // Inner Content Component sitting inside R3F Canvas
 function PhoenixSceneContent() {
@@ -373,11 +374,9 @@ function PhoenixSceneContent() {
           mat.iridescenceIOR = THREE.MathUtils.lerp(1.0, 1.6, glassBlend)
           mat.iridescenceThicknessRange = [100, 800]
           
-          // Dynamic spectrum color-shifting emissive halos
-          const hue = (time * 0.1) % 1.0
-          const iridColor = new THREE.Color().setHSL(hue, 0.9, 0.5)
-          mat.emissive.lerpColors(COLOR_BLACK, iridColor, glassBlend)
-          mat.emissiveIntensity = THREE.MathUtils.lerp(0.0, 0.4, glassBlend)
+          // Static pure white/silver emissive edge highlights
+          mat.emissive.lerpColors(COLOR_BLACK, COLOR_WHITE, glassBlend)
+          mat.emissiveIntensity = THREE.MathUtils.lerp(0.0, 0.15, glassBlend)
           
           // Toggle transparency to prevent sorting artifacts until transmission is active
           mat.transparent = glassBlend > 0.02
@@ -913,42 +912,43 @@ export function ArtificerInferenceCloud() {
           targetZ = THREE.MathUtils.lerp(tz, wingTargetZ, blendToWings)
         }
 
-        // 6. Swirling Cosmic Solar Wind: particles detach and orbit the crystalline phoenix in a high-speed spiral vortex (scroll 0.72 -> 1.0)
-        if (scroll > 0.72) {
-          const progress = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
-          const radius = 2.5 + Math.pow(progress * 4.5, 1.2) + Math.sin(i * 0.05 + time * 1.5) * 0.8
-          const angle = (i * 0.04) + time * (1.8 + friction * 3.0)
-          const windX = Math.cos(angle) * radius
-          const windY = (i / count) * 8.0 - 4.0 + Math.sin(time * 0.8 + i) * 1.0
-          const windZ = Math.sin(angle) * radius
+        const progress = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
 
-          targetX = THREE.MathUtils.lerp(targetX, windX, progress)
-          targetY = THREE.MathUtils.lerp(targetY, windY, progress)
-          targetZ = THREE.MathUtils.lerp(targetZ, windZ, progress)
+        // 6. Sleek Monochromatic Orbital Ring: particles transition into a thin, slowly rotating ring orbiting the centerpiece horizontally (scroll 0.72 -> 1.0)
+        if (scroll > 0.72) {
+          const radius = 3.5 + Math.sin(i * 0.05) * 0.5
+          const angle = (i * 0.015) + time * (0.2 + friction * 0.4)
+          const ringX = Math.cos(angle) * radius
+          const ringY = Math.sin(i * 0.02 + time * 0.05) * 0.5 - 0.2
+          const ringZ = Math.sin(angle) * radius
+
+          targetX = THREE.MathUtils.lerp(targetX, ringX, progress)
+          targetY = THREE.MathUtils.lerp(targetY, ringY, progress)
+          targetZ = THREE.MathUtils.lerp(targetZ, ringZ, progress)
         }
 
         positionsArray[i3] = THREE.MathUtils.lerp(positionsArray[i3], targetX, friction)
         positionsArray[i3 + 1] = THREE.MathUtils.lerp(positionsArray[i3 + 1], targetY, friction)
         positionsArray[i3 + 2] = THREE.MathUtils.lerp(positionsArray[i3 + 2], targetZ, friction)
 
-        // Keep original colors for high-contrast neon solar wind aesthetics
+        // Lerp to a soft, sleek white/silver monochromatic blend
         const rOrig = colors[i3]
         const gOrig = colors[i3 + 1]
         const bOrig = colors[i3 + 2]
 
-        colorsArray[i3] = rOrig
-        colorsArray[i3 + 1] = gOrig
-        colorsArray[i3 + 2] = bOrig
+        colorsArray[i3] = THREE.MathUtils.lerp(rOrig, 0.9, progress)
+        colorsArray[i3 + 1] = THREE.MathUtils.lerp(gOrig, 0.9, progress)
+        colorsArray[i3 + 2] = THREE.MathUtils.lerp(bOrig, 0.95, progress)
       }
 
       posAttr.needsUpdate = true
       colorAttr.needsUpdate = true
 
-      // Maintain intense opacity for the solar wind flares (lerp from 0.6 to 0.8)
+      // Maintain whisper-thin opacity for the quiet monochromatic orbital ring (lerp from 0.6 to 0.3)
       const mat = pointsRef.current.material as THREE.PointsMaterial
       if (mat) {
         const progress = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
-        mat.opacity = THREE.MathUtils.lerp(0.6, 0.8, progress)
+        mat.opacity = THREE.MathUtils.lerp(0.6, 0.3, progress)
       }
     }
   })

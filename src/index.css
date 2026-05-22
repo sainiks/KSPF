@@ -986,10 +986,10 @@ textarea.contact-input {
 .high-tech-container {
   width: 100%;
   pointer-events: auto;
-  border-top: 1px solid rgba(0, 210, 255, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 4rem;
   padding-bottom: 4rem;
-  background: rgba(3, 3, 5, 0.25); /* Deep high-tech translucent dark overlay */
+  background: rgba(2, 2, 3, 0.4);
   backdrop-filter: blur(50px) saturate(150%);
   -webkit-backdrop-filter: blur(50px) saturate(150%);
   transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -998,7 +998,6 @@ textarea.contact-input {
   overflow: hidden;
 }
 
-/* Background neon mesh glow overlay inside container */
 .high-tech-container::before {
   content: '';
   position: absolute;
@@ -1007,8 +1006,8 @@ textarea.contact-input {
   transform: translateX(-50%);
   width: 600px;
   height: 300px;
-  background: radial-gradient(circle, rgba(0, 210, 255, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 100%);
-  filter: blur(80px);
+  background: transparent;
+  filter: none;
   pointer-events: none;
   z-index: 0;
 }
@@ -1043,16 +1042,15 @@ textarea.contact-input {
 }
 
 .high-tech-card {
-  background: rgba(10, 10, 15, 0.45);
+  background: rgba(10, 10, 12, 0.25);
   backdrop-filter: blur(40px) saturate(140%);
   -webkit-backdrop-filter: blur(40px) saturate(140%);
-  border: 1px solid rgba(0, 210, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 16px;
   padding: 2.5rem;
   box-shadow: 
     0 15px 35px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 0 25px rgba(0, 210, 255, 0.03);
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
@@ -1068,7 +1066,7 @@ textarea.contact-input {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(0, 210, 255, 0.05) 0%, transparent 100%);
+  background: transparent;
   opacity: 0;
   transition: opacity 0.4s ease;
   pointer-events: none;
@@ -1077,15 +1075,14 @@ textarea.contact-input {
 
 .high-tech-card:hover {
   transform: translateY(-5px);
-  border-color: rgba(0, 255, 135, 0.3);
+  border-color: rgba(255, 255, 255, 0.12);
   box-shadow: 
     0 25px 45px rgba(0, 0, 0, 0.7),
-    0 0 35px rgba(0, 255, 135, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .high-tech-card:hover::after {
-  opacity: 1;
+  opacity: 0;
 }
 
 .high-tech-card-content {
@@ -1098,20 +1095,10 @@ textarea.contact-input {
   font-size: 3.5rem;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: -3px;
+  letter-spacing: -2px;
   line-height: 0.9;
-  background: linear-gradient(135deg, #00D2FF 0%, #00FF87 50%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
   margin-bottom: 1.5rem;
-  animation: colorShiftGradient 8s ease infinite alternate;
-  background-size: 200% 200%;
-}
-
-@keyframes colorShiftGradient {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 @media (min-width: 768px) {
@@ -1125,7 +1112,7 @@ textarea.contact-input {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
-  color: #00D2FF;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
@@ -1138,7 +1125,7 @@ textarea.contact-input {
   color: #ffffff;
   margin-bottom: 1.5rem;
   text-transform: uppercase;
-  border-bottom: 1px solid rgba(0, 210, 255, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 0.5rem;
   display: flex;
   align-items: center;
@@ -1150,9 +1137,8 @@ textarea.contact-input {
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: #00FF87;
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  box-shadow: 0 0 8px #00FF87;
 }
 
 .high-tech-list {
@@ -1190,8 +1176,8 @@ textarea.contact-input {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 0.75rem 1.25rem;
   color: #ffffff;
@@ -1209,9 +1195,9 @@ textarea.contact-input {
 }
 
 .high-tech-download-btn:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: #8b5cf6;
-  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
   transform: translateY(-2px);
 }
 
@@ -1220,8 +1206,8 @@ textarea.contact-input {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: rgba(0, 210, 255, 0.08);
-  border: 1px solid rgba(0, 210, 255, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 2rem;
   text-decoration: none;
@@ -1234,31 +1220,13 @@ textarea.contact-input {
 }
 
 .high-tech-connect-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transition: all 0.6s ease;
-}
-
-.high-tech-connect-btn:hover::before {
-  left: 100%;
+  display: none;
 }
 
 .high-tech-connect-btn:hover {
-  background: rgba(0, 210, 255, 0.15);
-  border-color: rgba(0, 255, 135, 0.5);
-  box-shadow: 
-    0 15px 35px rgba(0, 210, 255, 0.1),
-    0 0 30px rgba(0, 255, 135, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
   transform: translateY(-4px);
 }
 
@@ -1280,18 +1248,10 @@ textarea.contact-input {
   }
 }
 
-.high-tech-connect-btn:hover .high-tech-connect-text {
-  letter-spacing: 0px;
-  background: linear-gradient(135deg, #ffffff 0%, #00FF87 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .high-tech-connect-arrow {
   width: 2.5rem;
   height: 2.5rem;
-  color: rgba(0, 210, 255, 0.4);
+  color: rgba(255, 255, 255, 0.2);
   transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
   z-index: 1;
 }
@@ -1304,15 +1264,14 @@ textarea.contact-input {
 }
 
 .high-tech-connect-btn:hover .high-tech-connect-arrow {
-  color: #00FF87;
+  color: #ffffff;
   transform: translateX(0.5rem) scale(1.1);
-  filter: drop-shadow(0 0 8px #00FF87);
 }
 
 .high-tech-connect-email {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #00D2FF;
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-bottom: 0.5rem;
@@ -1321,7 +1280,7 @@ textarea.contact-input {
 }
 
 .high-tech-connect-btn:hover .high-tech-connect-email {
-  color: #00FF87;
+  color: #ffffff;
 }
 
 .high-tech-card-bottom {
@@ -1330,4 +1289,5 @@ textarea.contact-input {
   justify-content: flex-end;
   height: 100%;
 }
+
 

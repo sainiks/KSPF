@@ -739,7 +739,7 @@ export default function Overlay() {
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
                       Kunal Saini // Artificer OS. Architecting zero-latency computational client-side AI systems and digital products using optimized neural models.
                     </p>
-                    <div style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'rgba(0, 210, 255, 0.4)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                    <div style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'rgba(255, 255, 255, 0.25)', letterSpacing: '2px', textTransform: 'uppercase' }}>
                       DELHI, INDIA // [LAT: 28.7041, LON: 77.1025]
                     </div>
                   </div>
