@@ -1,12 +1,38 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { initMLEngine, semanticSearch } from '../utils/mlEngine'
 
 gsap.registerPlugin(ScrollTrigger)
 
+interface HistoryItem {
+  type: 'input' | 'output' | 'system' | 'rag' | 'error';
+  text: string;
+}
+
 export default function Overlay() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const terminalInputRef = useRef<HTMLInputElement>(null)
+  const terminalOutputRef = useRef<HTMLDivElement>(null)
 
+  // System States
+  const [terminalActive, setTerminalActive] = useState(false)
+  const [mlStatus, setMlStatus] = useState({ status: 'idle', progress: 0 })
+  const [searchVal, setSearchVal] = useState('')
+  const [cmdVal, setCmdVal] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  
+  // Terminal Logs Initialization
+  const [terminalHistory, setTerminalHistory] = useState<HistoryItem[]>([
+    { type: 'system', text: 'ARTIFICER DEEP RETRIEVAL KERNEL v1.0.4-WASM' },
+    { type: 'system', text: 'Initializing local Edge ML semantic weights...' },
+    { type: 'system', text: 'Edge Wasm status: OPERATION READY' },
+    { type: 'system', text: '---------------------------------------------------' },
+    { type: 'system', text: 'Type "help" to display operational intelligence commands.' },
+    { type: 'system', text: 'Press ~ or type "exit" to resume standard glass overlay.' }
+  ])
+
+  // 1. Core GSAP Scrollytelling Timeline
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -16,24 +42,19 @@ export default function Overlay() {
       const aboutPanel = containerRef.current!.querySelector('.panel-right')
       const contactPanel = containerRef.current!.querySelector('.panel-center')
 
-      // Create a single scrollytelling timeline linked to parent container scroll progress
-      // Timeline time values 0.0s to 4.0s map to scroll percentages 0% to 100%
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: '#portfolio-container',
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.5, // Reduced from 1.0 to 0.5 to prevent desync jitter between overlays and 3D canvas
+          scrub: 1.5,
         },
       })
 
-      // Enforce clean, self-contained initial states inside the timeline at Scroll = 0
       tl.set(heroPanel, { opacity: 1, y: 0, autoAlpha: 1 }, 0)
       tl.set([projectsPanel, aboutPanel, contactPanel], { opacity: 0, y: 60, autoAlpha: 0 }, 0)
 
-      // --- TIMELINE DEFINITIONS ---
-
-      // 1. Hero panel fades and slides out upwards (0.15s to 0.50s)
+      // Hero slides out
       tl.to(heroPanel, {
         opacity: 0,
         y: -60,
@@ -42,7 +63,7 @@ export default function Overlay() {
         duration: 0.35,
       }, 0.15)
 
-      // 2. Projects panel fades and slides up in place (0.55s to 0.85s)
+      // Projects slides in
       .to(projectsPanel, {
         opacity: 1,
         y: 0,
@@ -50,7 +71,7 @@ export default function Overlay() {
         ease: 'power2.out',
         duration: 0.30,
       }, 0.55)
-      // Projects panel fades and slides out upwards (1.15s to 1.50s)
+      // Projects slides out
       .to(projectsPanel, {
         opacity: 0,
         y: -60,
@@ -59,7 +80,7 @@ export default function Overlay() {
         duration: 0.35,
       }, 1.15)
 
-      // 3. About panel fades and slides up in place (1.55s to 1.85s)
+      // About slides in
       .to(aboutPanel, {
         opacity: 1,
         y: 0,
@@ -67,7 +88,7 @@ export default function Overlay() {
         ease: 'power2.out',
         duration: 0.30,
       }, 1.55)
-      // About panel fades and slides out upwards (2.15s to 2.50s)
+      // About slides out
       .to(aboutPanel, {
         opacity: 0,
         y: -60,
@@ -76,7 +97,7 @@ export default function Overlay() {
         duration: 0.35,
       }, 2.15)
 
-      // 4. Contact panel fades and slides up in place (2.55s to 2.85s)
+      // Contact slides in
       .to(contactPanel, {
         opacity: 1,
         y: 0,
@@ -84,7 +105,7 @@ export default function Overlay() {
         ease: 'power2.out',
         duration: 0.30,
       }, 2.55)
-      // Contact panel fades and slides out during the deep abyss plunge (3.15s to 3.65s)
+      // Contact slides out
       .to(contactPanel, {
         opacity: 0,
         y: -80,
@@ -100,18 +121,260 @@ export default function Overlay() {
     }
   }, [])
 
-  // Quick navigation helper (scrolls window to center active sections within dwells)
+  // 2. Terminal Override (~ Key) Global Listener & GSAP Dismissal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '`' || e.key === '~') {
+        e.preventDefault()
+        setTerminalActive(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  useEffect(() => {
+    const wrapper = containerRef.current?.querySelector('.sticky-viewport')
+    if (!wrapper) return
+
+    if (terminalActive) {
+      // Dismiss visual glass interface (slide out up)
+      gsap.to(wrapper, {
+        y: '-100vh',
+        opacity: 0,
+        duration: 0.55,
+        ease: 'power3.inOut'
+      })
+      // Auto focus console input after opening
+      setTimeout(() => {
+        terminalInputRef.current?.focus()
+      }, 200)
+    } else {
+      // Restore visual glass interface
+      gsap.to(wrapper, {
+        y: 0,
+        opacity: 1,
+        duration: 0.55,
+        ease: 'power3.out'
+      })
+    }
+  }, [terminalActive])
+
+  // 3. Initialize ML engine in background on mount
+  useEffect(() => {
+    initMLEngine()
+
+    const handleMLEngineStatus = (e: Event) => {
+      const customEvent = e as CustomEvent
+      setMlStatus(customEvent.detail)
+    }
+    window.addEventListener('ml-engine-status', handleMLEngineStatus)
+    return () => window.removeEventListener('ml-engine-status', handleMLEngineStatus)
+  }, [])
+
+  // 4. Scroll Helper matching 650vh container bounds
   const scrollToSection = (index: number) => {
-    const scrollHeight = window.innerHeight * index
+    const scrollMax = document.documentElement.scrollHeight - window.innerHeight
+    
+    // Target exact midpoint scrolls inside the dwells:
+    // Index 0: 0% scroll
+    // Index 1 (Projects): 22% scroll
+    // Index 2 (About): 47% scroll
+    // Index 3 (Contact): 72% scroll
+    let targetRatio = 0
+    if (index === 1) targetRatio = 0.22
+    else if (index === 2) targetRatio = 0.47
+    else if (index === 3) targetRatio = 0.72
+
     window.scrollTo({
-      top: scrollHeight,
+      top: scrollMax * targetRatio,
       behavior: 'smooth',
     })
   }
 
+  // 5. Semantic Search execution inside visual navbar input
+  const handleNavbarSemanticSearch = async (query: string) => {
+    if (!query.trim()) return
+
+    try {
+      console.log(`[Semantic Search] Inferencing query: "${query}"...`)
+      const results = await semanticSearch(query)
+      const best = results[0]
+
+      if (best && best.score > 0.15) {
+        console.log(`[Semantic Search] Closest match: ${best.doc.title} (${(best.score * 100).toFixed(1)}%)`)
+        
+        // Scroll camera to section plateau
+        scrollToSection(best.doc.sectionIndex)
+
+        // Trigger dynamic lights morphing if matching nexturn or redsea cards
+        if (best.doc.projectKey) {
+          window.dispatchEvent(new CustomEvent('project-hover', { detail: best.doc.projectKey }))
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('project-hover', { detail: null }))
+          }, 6000)
+        }
+      } else {
+        console.log('[Semantic Search] Low confidence match, staying on current view.')
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    setSearchVal('')
+  }
+
+  // 6. Character typewriter output streams for RAG
+  const streamTerminalText = (text: string, type: 'rag' | 'output' | 'system') => {
+    setIsTyping(true)
+    let currentText = ''
+    setTerminalHistory(prev => [...prev, { type, text: '' }])
+
+    let i = 0
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        currentText += text.charAt(i)
+        setTerminalHistory(prev => {
+          const next = [...prev]
+          next[next.length - 1] = { type, text: currentText }
+          return next
+        })
+        i++
+        if (terminalOutputRef.current) {
+          terminalOutputRef.current.scrollTop = terminalOutputRef.current.scrollHeight
+        }
+      } else {
+        clearInterval(interval)
+        setIsTyping(false)
+        setTimeout(() => {
+          terminalInputRef.current?.focus()
+        }, 50)
+      }
+    }, 10)
+  }
+
+  // 7. Interactive Terminal command parser
+  const handleTerminalCommand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const input = cmdVal.trim()
+    if (!input || isTyping) return
+
+    setCmdVal('')
+
+    // Append raw input line to logs
+    setTerminalHistory(prev => [...prev, { type: 'input', text: `> ${input}` }])
+
+    const parts = input.split(' ')
+    const cmd = parts[0].toLowerCase()
+    const arg = parts.slice(1).join(' ')
+
+    switch (cmd) {
+      case 'help':
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'output', text: 'AVAILABLE OPERATIONS:' },
+          { type: 'output', text: '  help                      - Display active intelligence operations.' },
+          { type: 'output', text: '  status                    - Read WebGL engine and Edge ML vector variables.' },
+          { type: 'output', text: '  clear                     - Flush terminal output buffer.' },
+          { type: 'output', text: '  search <concept>          - Run WASM semantic search and sweeps 3D camera to target.' },
+          { type: 'output', text: '  query <question>          - Stream RAG response from academic REDSEA & Nexturn papers.' },
+          { type: 'output', text: '  exit                      - Flush terminal overlay and restore visual glass UI.' }
+        ])
+        break
+
+      case 'clear':
+        setTerminalHistory([])
+        break
+
+      case 'status':
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'system', text: 'CORE HARDWARE & VECTOR VARIABLES:' },
+          { type: 'system', text: '  - 3D Engine: React Three Fiber + PerspectiveCamera (Z=12)' },
+          { type: 'system', text: '  - Material physical: Brushed Graphite (Physical clearcoat)' },
+          { type: 'system', text: '  - Environment mapping: HDR Studio preset (Intensity 0.85)' },
+          { type: 'system', text: '  - Math background: GLSL Tensor Grid Fragment Shader (Active)' },
+          { type: 'system', text: '  - Clustering Logic: Real-time K-Means (2,000 Fibonacci nodes)' },
+          { type: 'system', text: '  - Edge ML Engine: quantized all-MiniLM-L6-v2 vector model loaded' },
+          { type: 'system', text: `  - Edge ML Status: ${mlStatus.status.toUpperCase()}` },
+          { type: 'system', text: '  - Latency projection: ~14ms (Local WASM execution)' }
+        ])
+        break
+
+      case 'exit':
+        setTerminalActive(false)
+        break
+
+      case 'search':
+        if (!arg) {
+          setTerminalHistory(prev => [...prev, { type: 'error', text: 'Error: concept argument required. Usage: search <concept>' }])
+          break
+        }
+        setTerminalHistory(prev => [...prev, { type: 'system', text: `Searching local vector database for concept: "${arg}"...` }])
+        
+        try {
+          const results = await semanticSearch(arg)
+          const match = results[0]
+          
+          if (match && match.score > 0.15) {
+            setTerminalHistory(prev => [
+              ...prev,
+              { type: 'output', text: `Match found: "${match.doc.title}" (Confidence: ${(match.score * 100).toFixed(1)}%)` },
+              { type: 'output', text: `Executing autonomous camera sweep to section index ${match.doc.sectionIndex}...` }
+            ])
+            scrollToSection(match.doc.sectionIndex)
+            if (match.doc.projectKey) {
+              window.dispatchEvent(new CustomEvent('project-hover', { detail: match.doc.projectKey }))
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('project-hover', { detail: null }))
+              }, 5000)
+            }
+          } else {
+            setTerminalHistory(prev => [...prev, { type: 'error', text: 'Search query yielded zero high-confidence matches.' }])
+          }
+        } catch (err) {
+          setTerminalHistory(prev => [...prev, { type: 'error', text: `Inference error: ${String(err)}` }])
+        }
+        break
+
+      case 'query':
+        if (!arg) {
+          setTerminalHistory(prev => [...prev, { type: 'error', text: 'Error: question context required. Usage: query <question>' }])
+          break
+        }
+        
+        setTerminalHistory(prev => [...prev, { type: 'system', text: `Streaming local RAG query over custom intelligence layers...` }])
+        
+        try {
+          const results = await semanticSearch(arg)
+          const match = results[0]
+          
+          if (match && match.score > 0.15) {
+            const answer = `[SOURCE: ${match.doc.title} | CONFIDENCE: ${(match.score * 100).toFixed(1)}%]\n\n${match.doc.content}`
+            streamTerminalText(answer, 'rag')
+          } else {
+            streamTerminalText(`System failed to retrieve high-confidence contextual matches for query: "${arg}". Try asking about "REDSEA research model" or "Nexturn system database migrations".`, 'output')
+          }
+        } catch (err) {
+          setTerminalHistory(prev => [...prev, { type: 'error', text: `Inference error: ${String(err)}` }])
+        }
+        break
+
+      default:
+        setTerminalHistory(prev => [...prev, { type: 'error', text: `Unknown operation: "${cmd}". Type "help" for available console vectors.` }])
+        break
+    }
+  }
+
+  // Auto-scroll output log
+  useEffect(() => {
+    if (terminalOutputRef.current) {
+      terminalOutputRef.current.scrollTop = terminalOutputRef.current.scrollHeight
+    }
+  }, [terminalHistory])
+
   return (
     <>
-      {/* Sleek Devilish Navigation Bar */}
+      {/* 1. Standard visual glass interface header */}
       <nav className="navbar">
         <a href="#" className="nav-logo" onClick={() => scrollToSection(0)}>
           ARTIFICER<span>.</span>
@@ -138,9 +401,69 @@ export default function Overlay() {
             </a>
           </li>
         </ul>
+
+        {/* Dynamic Edge ML search field */}
+        <div className="search-bar-container">
+          <input 
+            type="text" 
+            placeholder={
+              mlStatus.status === 'loading'
+                ? `WASM ML LOADING (${Math.round(mlStatus.progress)}%)...`
+                : mlStatus.status === 'ready'
+                ? "Semantic search (e.g. neural models)..."
+                : "Initialize ML (Press ~ for terminal)..."
+            }
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            className="semantic-search-input"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleNavbarSemanticSearch(e.currentTarget.value)
+              }
+            }}
+          />
+          <span className={`ml-status-dot ${mlStatus.status}`}></span>
+        </div>
       </nav>
 
-      {/* Main scrollytelling overlay track */}
+      {/* 2. Interactive Terminal Override CLI Pane */}
+      <div className={`terminal-overlay ${terminalActive ? 'active' : ''}`}>
+        <div className="terminal-header">
+          <div>// ARTIFICER SYSTEM NODE: ONLINE | INTEGRATION: WEBASEMBLY COGNITIVE ENGINE</div>
+          <div>ML PIPELINE STATE: <span className="terminal-status-ok">{mlStatus.status.toUpperCase()}</span></div>
+        </div>
+
+        <div className="terminal-output" ref={terminalOutputRef}>
+          {terminalHistory.map((item, idx) => (
+            <div key={idx} className={`terminal-row ${item.type}`}>
+              {item.text}
+            </div>
+          ))}
+        </div>
+
+        <form className="terminal-input-line" onSubmit={handleTerminalCommand}>
+          <span className="terminal-prompt">$</span>
+          <input
+            ref={terminalInputRef}
+            type="text"
+            className="terminal-input"
+            value={cmdVal}
+            onChange={(e) => setCmdVal(e.target.value)}
+            disabled={isTyping}
+            placeholder={isTyping ? "Engine streaming..." : "Type command (e.g. status, query, search)..."}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+          />
+        </form>
+
+        <div className="terminal-exit-hint">
+          [Press ~ to flush overlay & return to standard GUI]
+        </div>
+      </div>
+
+      {/* 3. Main visual sticky scrollytelling container */}
       <div id="portfolio-container" ref={containerRef}>
         
         {/* Pinned Sticky Viewport */}
@@ -148,7 +471,6 @@ export default function Overlay() {
           
           {/* PANEL 1: HERO */}
           <section className="scroll-panel panel-hero" id="hero" style={{ position: 'relative' }}>
-            {/* Micro-typography for that technical, engineered developer feel */}
             <div style={{ 
               position: 'absolute', 
               top: '3rem', 
@@ -163,8 +485,8 @@ export default function Overlay() {
               textAlign: 'left',
               pointerEvents: 'none'
             }}>
-              <span>// SYSTEM: ONLINE</span>
-              <span>// ENG: R3F_WEBGL</span>
+              <span>// SYSTEM: OPERATIONAL</span>
+              <span>// INFERENCE: WASM_L6_V2</span>
             </div>
 
             <div className="animate-content">
@@ -206,14 +528,13 @@ export default function Overlay() {
               letterSpacing: '2px', 
               color: '#55555a' 
             }}>
-              <span>[ SCROLL TO EXPLORE ]</span>
+              <span>[ SCROLL TO OVERRIDE ]</span>
             </div>
           </section>
 
           {/* PANEL 2: PROJECTS */}
           <section className="scroll-panel panel-left" id="projects">
             
-            {/* Section Header */}
             <div className="projects-header-group">
               <div className="projects-header-meta">
                 <div className="projects-header-line"></div>
@@ -222,7 +543,6 @@ export default function Overlay() {
               <h2 className="projects-title">Selected Projects.</h2>
             </div>
 
-            {/* Projects Grid Container */}
             <div className="projects-list-container">
 
               {/* PROJECT 01: NEXTURN CONNECT */}
@@ -231,7 +551,6 @@ export default function Overlay() {
                 onMouseEnter={() => window.dispatchEvent(new CustomEvent('project-hover', { detail: 'nexturn' }))}
                 onMouseLeave={() => window.dispatchEvent(new CustomEvent('project-hover', { detail: null }))}
               >
-                {/* Ambient Internal Glow */}
                 <div className="project-card-glow"></div>
 
                 <div className="project-card-content">
@@ -240,7 +559,6 @@ export default function Overlay() {
                       <h3 className="project-card-title">Nexturn Connect</h3>
                       <p className="project-card-mono-meta">Platform Architecture</p>
                     </div>
-                    {/* Sleek Pill Badge for Role */}
                     <div className="project-role-pill">
                       Tech Head
                     </div>
@@ -250,7 +568,6 @@ export default function Overlay() {
                     Engineered the core digital infrastructure and interface following the structural merger. Designed to streamline operations and centralize the talent pipeline into a single, cohesive ecosystem.
                   </p>
 
-                  {/* Footer: Tech Stack & Live Link */}
                   <div className="project-card-footer">
                     <div className="project-tech-pills">
                       {['React', 'System Design', 'UI/UX'].map((tech) => (
@@ -260,7 +577,6 @@ export default function Overlay() {
                       ))}
                     </div>
 
-                    {/* Solid Action Pill Button */}
                     <a 
                       href="https://nexturn-vision.vercel.app" 
                       target="_blank" 
@@ -282,7 +598,6 @@ export default function Overlay() {
                 onMouseEnter={() => window.dispatchEvent(new CustomEvent('project-hover', { detail: 'redsea' }))}
                 onMouseLeave={() => window.dispatchEvent(new CustomEvent('project-hover', { detail: null }))}
               >
-                {/* Ambient Internal Glow */}
                 <div className="project-card-glow"></div>
 
                 <div className="project-card-content">
@@ -300,7 +615,6 @@ export default function Overlay() {
                     A comprehensive 50-page academic research paper detailing advanced integrations in artificial intelligence and machine learning architectures under direct academic supervision.
                   </p>
 
-                  {/* Footer: Tech Stack */}
                   <div className="project-card-footer">
                     <div className="project-tech-pills">
                       {['AI', 'Machine Learning', 'Neural Networks'].map((tech) => (
@@ -310,7 +624,6 @@ export default function Overlay() {
                       ))}
                     </div>
 
-                    {/* Solid Action Pill Button */}
                     <a 
                       href="https://red-sea-omega.vercel.app" 
                       target="_blank" 

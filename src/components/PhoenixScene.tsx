@@ -1,6 +1,6 @@
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, Float, PerspectiveCamera, Environment, ContactShadows } from '@react-three/drei'
-import React, { useEffect, useRef, Suspense } from 'react'
+import React, { useEffect, useRef, Suspense, useMemo } from 'react'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -358,7 +358,7 @@ function PhoenixSceneContent() {
           trigger: '#portfolio-container', // Main DOM container track
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.5, // Reduced from 1.0 to 0.5 for much snappier, instant-feeling feedback and zero jitter
+          scrub: 1.5, // Beautiful, slow gliding dampening
         },
       })
 
@@ -493,7 +493,7 @@ function PhoenixSceneContent() {
         color="#ffffff" 
       />
 
-      <group ref={phoenixGroupRef} position={[0, 0.2, 1.0]} rotation={[0.05, -0.2, 0]}>
+      <group ref={phoenixGroupRef} name="phoenix-group" position={[0, 0.2, 1.0]} rotation={[0.05, -0.2, 0]}>
         <Float
           speed={2} 
           rotationIntensity={0.25} 
@@ -504,6 +504,307 @@ function PhoenixSceneContent() {
         </Float>
       </group>
     </>
+  )
+}
+
+// 1. GLSL Tensor Field Background Shader Component
+function GLSLTensorField() {
+  const { size, pointer } = useThree()
+  const meshRef = useRef<THREE.Mesh>(null)
+  const materialRef = useRef<THREE.ShaderMaterial>(null)
+  
+  useFrame((state) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.u_time.value = state.clock.getElapsedTime()
+      // Smoothly interpolate mouse coordinate for visual fluidness
+      const targetX = pointer.x
+      const targetY = pointer.y
+      const currentX = materialRef.current.uniforms.u_mouse.value.x
+      const currentY = materialRef.current.uniforms.u_mouse.value.y
+      
+      materialRef.current.uniforms.u_mouse.value.set(
+        THREE.MathUtils.lerp(currentX, targetX, 0.05),
+        THREE.MathUtils.lerp(currentY, targetY, 0.05)
+      )
+    }
+  })
+  
+  const uniforms = useMemo(() => ({
+    u_time: { value: 0 },
+    u_mouse: { value: new THREE.Vector2(0, 0) },
+    u_resolution: { value: new THREE.Vector2(size.width, size.height) }
+  }), [])
+  
+  useEffect(() => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.u_resolution.value.set(size.width, size.height)
+    }
+  }, [size])
+  
+  return (
+    <mesh ref={meshRef} position={[0, 0, -20]}>
+      <planeGeometry args={[75, 75]} />
+      <shaderMaterial
+        ref={materialRef}
+        uniforms={uniforms}
+        vertexShader={`
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `}
+        fragmentShader={`
+          uniform float u_time;
+          uniform vec2 u_mouse;
+          uniform vec2 u_resolution;
+          varying vec2 vUv;
+          
+          void main() {
+            vec2 uv = vUv;
+            
+            // Adjust grid scale for screen aspect ratio
+            vec2 gridScale = vec2(45.0, 45.0 * (u_resolution.y / u_resolution.x));
+            
+            // Map mouse to UV space [0, 1]
+            vec2 mouseUv = u_mouse * 0.5 + 0.5;
+            
+            float distToMouse = distance(uv, mouseUv);
+            
+            // Distortion well (gravity falloff)
+            float gravity = smoothstep(0.42, 0.0, distToMouse);
+            vec2 toMouse = uv - mouseUv;
+            
+            // Distort UVs
+            vec2 distortedUv = uv - normalize(toMouse + 0.0001) * gravity * 0.038;
+            
+            // Generate matrix grid weights
+            vec2 gridUv = fract(distortedUv * gridScale - 0.5) - 0.5;
+            
+            // Intersection dots
+            float dotDist = length(gridUv);
+            float dotMask = smoothstep(0.08 + gravity * 0.03, 0.0, dotDist);
+            
+            // Grid lines
+            float lineX = smoothstep(0.015, 0.0, abs(gridUv.x));
+            float lineY = smoothstep(0.015, 0.0, abs(gridUv.y));
+            float lineMask = max(lineX, lineY) * 0.055;
+            
+            // Math weight pulse cells
+            vec2 cellIdx = floor(distortedUv * gridScale);
+            float nodePulse = sin(cellIdx.x * 0.55 + cellIdx.y * 0.78 + u_time * 1.35) * 0.5 + 0.5;
+            nodePulse *= step(0.68, fract(sin(cellIdx.x * 12.9898 + cellIdx.y * 78.233) * 43758.5453));
+            
+            float gridIntensity = (dotMask * (0.28 + nodePulse * 0.72) + lineMask);
+            
+            // Interactive glow
+            float mouseGlow = exp(-distToMouse * 3.8) * 0.42;
+            
+            // Curated deep obsidian color design
+            vec3 bgColor = vec3(0.006, 0.006, 0.01);
+            vec3 gridColor = vec3(0.0, 0.82, 1.0) * gridIntensity; // Cyan grid
+            vec3 pulseColor = vec3(0.0, 1.0, 0.53) * dotMask * nodePulse * 0.48; // Neon green weights
+            vec3 glowColor = vec3(0.0, 0.82, 1.0) * mouseGlow;
+            
+            vec3 finalColor = bgColor + gridColor + pulseColor + glowColor;
+            
+            // Vignette shading
+            float vignette = uv.x * uv.y * (1.0 - uv.x) * (1.0 - uv.y);
+            vignette = clamp(pow(16.0 * vignette, 0.22), 0.0, 1.0);
+            finalColor *= vignette;
+            
+            gl_FragColor = vec4(finalColor, 1.0);
+          }
+        `}
+        depthWrite={false}
+        fog={false}
+      />
+    </mesh>
+  )
+}
+
+// 2. ArtificerInferenceCloud Particle System with K-Means & Wing Attraction
+export function ArtificerInferenceCloud() {
+  const pointsRef = useRef<THREE.Points>(null)
+  const geomRef = useRef<THREE.BufferGeometry>(null)
+
+  const count = 2000
+  const { spherePositions, colors, clusterIds, randomFriction } = useMemo(() => {
+    const spherePositions = new Float32Array(count * 3)
+    const colors = new Float32Array(count * 3)
+    const clusterIds = new Uint8Array(count)
+    const randomFriction = new Float32Array(count)
+
+    const colorBase = new THREE.Color('#00D2FF') // Cyan
+    const colorAccent = new THREE.Color('#00FF87') // Neon Green
+    const colorPurple = new THREE.Color('#8b5cf6') // Purple
+
+    let offset = 2 / count
+    let increment = Math.PI * (3 - Math.sqrt(5))
+
+    for (let i = 0; i < count; i++) {
+      let y = ((i * offset) - 1) + (offset / 2)
+      let r = Math.sqrt(1 - Math.pow(y, 2))
+      let phi = ((i + 1) % count) * increment
+
+      // Set Fibonacci sphere coordinates
+      spherePositions[i * 3] = Math.cos(phi) * r * 7.5
+      spherePositions[i * 3 + 1] = y * 7.5
+      spherePositions[i * 3 + 2] = Math.sin(phi) * r * 7.5
+
+      // Assign to K-Means clusters
+      const cid = i % 4
+      clusterIds[i] = cid
+
+      // Random friction speed variations
+      randomFriction[i] = 0.025 + Math.random() * 0.065
+
+      // Cluster color mixes
+      let c = colorBase.clone()
+      if (cid === 1) c.lerp(colorAccent, 0.5)
+      else if (cid === 2) c = colorAccent.clone()
+      else if (cid === 3) c = colorPurple.clone()
+      
+      colors[i * 3] = c.r
+      colors[i * 3 + 1] = c.g
+      colors[i * 3 + 2] = c.b
+    }
+    return { spherePositions, colors, clusterIds, randomFriction }
+  }, [])
+
+  const activePositions = useMemo(() => new Float32Array(count * 3), [])
+
+  useEffect(() => {
+    activePositions.set(spherePositions)
+  }, [spherePositions])
+
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime()
+    const phoenix = state.scene.getObjectByName('phoenix-group')
+    const scroll = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight || 1)
+    
+    // Centroid definitions representing architectural states
+    const centroids = [
+      new THREE.Vector3(0, 0.5, 0),    // Hero (Center)
+      new THREE.Vector3(5.2, 0.2, -2.5),  // Projects (Right)
+      new THREE.Vector3(-4.8, -0.2, 1.2), // About (Left)
+      new THREE.Vector3(0, 1.2, -3.2),   // Contact (Center Back)
+    ]
+
+    // Sine sways representing weight gradient convergence
+    centroids[0].add(new THREE.Vector3(Math.sin(time) * 0.35, Math.cos(time * 0.8) * 0.25, 0))
+    centroids[1].add(new THREE.Vector3(Math.cos(time * 0.7) * 0.45, Math.sin(time) * 0.35, Math.sin(time * 0.5) * 0.25))
+    centroids[2].add(new THREE.Vector3(Math.sin(time * 0.9) * 0.35, Math.cos(time * 0.6) * 0.35, 0))
+    centroids[3].add(new THREE.Vector3(Math.cos(time * 1.2) * 0.25, 0, Math.sin(time) * 0.45))
+
+    if (pointsRef.current && geomRef.current) {
+      pointsRef.current.rotation.y = time * 0.025
+      pointsRef.current.rotation.z = Math.sin(time * 0.04) * 0.04
+      
+      const posAttr = geomRef.current.getAttribute('position') as THREE.BufferAttribute
+      const positionsArray = posAttr.array as Float32Array
+
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3
+        const cid = clusterIds[i]
+        const friction = randomFriction[i]
+
+        const sphereX = spherePositions[i3]
+        const sphereY = spherePositions[i3 + 1]
+        const sphereZ = spherePositions[i3 + 2]
+
+        const centroid = centroids[cid]
+        const noiseX = Math.sin(i * 0.05 + time) * 1.0
+        const noiseY = Math.cos(i * 0.08 + time * 1.1) * 1.0
+        const noiseZ = Math.sin(i * 0.12 + time * 0.7) * 1.0
+        const clusterTargetX = centroid.x + noiseX
+        const clusterTargetY = centroid.y + noiseY
+        const clusterTargetZ = centroid.z + noiseZ
+
+        let wingTargetX = clusterTargetX
+        let wingTargetY = clusterTargetY
+        let wingTargetZ = clusterTargetZ
+
+        if (phoenix) {
+          const isLeft = i < 900
+          const isTail = i >= 1700
+          
+          let localAttractor = new THREE.Vector3()
+
+          if (isTail) {
+            const progress = (i - 1700) / 300
+            localAttractor.set(
+              Math.sin(time * 3.2 - progress * 4.0) * 0.7,
+              -1.2 - progress * 3.5,
+              -progress * 4.5
+            )
+          } else {
+            const progress = isLeft ? (i / 900) : ((i - 900) / 800)
+            const side = isLeft ? -1 : 1
+            const flapSpeed = 4.2
+            const phaseOffset = progress * 2.0
+            const flapY = Math.sin(time * flapSpeed - phaseOffset) * 1.8
+            
+            localAttractor.set(
+              side * (1.0 + progress * 5.0),
+              flapY * (0.28 + progress * 0.72),
+              -progress * 1.6
+            )
+          }
+
+          // Convert attractor points from local model coordinates to global coordinates
+          localAttractor.applyMatrix4(phoenix.matrixWorld)
+          
+          wingTargetX = localAttractor.x + (Math.random() - 0.5) * 0.18
+          wingTargetY = localAttractor.y + (Math.random() - 0.5) * 0.18
+          wingTargetZ = localAttractor.z + (Math.random() - 0.5) * 0.18
+        }
+
+        // Blend layouts based on scroll positions
+        let targetX = sphereX
+        let targetY = sphereY
+        let targetZ = sphereZ
+
+        if (scroll > 0.02) {
+          const blendToClustering = THREE.MathUtils.clamp((scroll - 0.02) * 5.0, 0, 1)
+          const blendToWings = THREE.MathUtils.clamp((scroll - 0.12) * 2.2, 0, 1)
+
+          // Sphere -> Cluster
+          let tx = THREE.MathUtils.lerp(sphereX, clusterTargetX, blendToClustering)
+          let ty = THREE.MathUtils.lerp(sphereY, clusterTargetY, blendToClustering)
+          let tz = THREE.MathUtils.lerp(sphereZ, clusterTargetZ, blendToClustering)
+
+          // Cluster -> Wing wrap
+          targetX = THREE.MathUtils.lerp(tx, wingTargetX, blendToWings)
+          targetY = THREE.MathUtils.lerp(ty, wingTargetY, blendToWings)
+          targetZ = THREE.MathUtils.lerp(tz, wingTargetZ, blendToWings)
+        }
+
+        positionsArray[i3] = THREE.MathUtils.lerp(positionsArray[i3], targetX, friction)
+        positionsArray[i3 + 1] = THREE.MathUtils.lerp(positionsArray[i3 + 1], targetY, friction)
+        positionsArray[i3 + 2] = THREE.MathUtils.lerp(positionsArray[i3 + 2], targetZ, friction)
+      }
+
+      posAttr.needsUpdate = true
+    }
+  })
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry ref={geomRef}>
+        <bufferAttribute attach="attributes-position" args={[activePositions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial 
+        size={0.05} 
+        vertexColors 
+        transparent 
+        opacity={0.6} 
+        sizeAttenuation={true} 
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
   )
 }
 
@@ -538,11 +839,17 @@ export default function PhoenixScene() {
           {/* Obsidian & Structure Minimalist Fog */}
           <fog attach="fog" args={['#030303', 8, 25]} />
 
+          {/* Real-time Math GLSL background shader */}
+          <GLSLTensorField />
+
           {/* 1. Realistic Studio Environment (Provides the high-fidelity reflections) */}
           <Environment preset="studio" background={false} environmentIntensity={0.85} />
 
           {/* Ground shadow to ground the model in physical space */}
           <ContactShadows position={[0, -3.0, 0]} opacity={0.5} scale={10} blur={2} far={4} />
+
+          {/* Live K-Means clustering particle sphere wrapping the wings */}
+          <ArtificerInferenceCloud />
 
           <Suspense fallback={<CanvasLoader />}>
             <PhoenixSceneContent />
