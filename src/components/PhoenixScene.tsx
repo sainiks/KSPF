@@ -503,6 +503,9 @@ function PhoenixSceneContent() {
           <primitive object={scene} scale={scale} />
         </Float>
       </group>
+
+      {/* Render the inference cloud inside the suspended content to synchronize frame loops and prevent loading jumps */}
+      <ArtificerInferenceCloud />
     </>
   )
 }
@@ -650,6 +653,11 @@ export function ArtificerInferenceCloud() {
   const pointsRef = useRef<THREE.Points>(null)
   const geomRef = useRef<THREE.BufferGeometry>(null)
 
+  // Skeleton bone caches to trace actual physical model geometry
+  const leftBonesRef = useRef<THREE.Object3D[]>([])
+  const rightBonesRef = useRef<THREE.Object3D[]>([])
+  const tailBonesRef = useRef<THREE.Object3D[]>([])
+
   const count = 2000
   const { spherePositions, colors, clusterIds, randomFriction } = useMemo(() => {
     const spherePositions = new Float32Array(count * 3)
@@ -703,8 +711,38 @@ export function ArtificerInferenceCloud() {
   useFrame((state) => {
     const time = state.clock.getElapsedTime()
     const phoenix = state.scene.getObjectByName('phoenix-group')
+    
+    // Explicitly update matrices of the entire hierarchy to ensure absolute bone tracking synchronization
+    if (phoenix) {
+      phoenix.updateMatrixWorld(true)
+    }
+
     const scroll = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight || 1)
     
+    // Dynamically retrieve bone systems on first available frame
+    if (phoenix && (leftBonesRef.current.length === 0 || rightBonesRef.current.length === 0 || tailBonesRef.current.length === 0)) {
+      console.log('[Inference Cloud] Parsing physical skeleton bones for direct tracking...')
+      const leftTemp: THREE.Object3D[] = []
+      const rightTemp: THREE.Object3D[] = []
+      const tailTemp: THREE.Object3D[] = []
+
+      phoenix.traverse((child) => {
+        if (child.name.startsWith('B_Left_Wing_')) {
+          leftTemp.push(child)
+        } else if (child.name.startsWith('B_Right_Wing_')) {
+          rightTemp.push(child)
+        } else if (child.name.startsWith('B_Tail_')) {
+          tailTemp.push(child)
+        }
+      })
+
+      // Sort bones to ensure progressive tracking along the wing skeleton chains
+      const sortByName = (a: THREE.Object3D, b: THREE.Object3D) => a.name.localeCompare(b.name, undefined, { numeric: true })
+      leftBonesRef.current = leftTemp.sort(sortByName)
+      rightBonesRef.current = rightTemp.sort(sortByName)
+      tailBonesRef.current = tailTemp.sort(sortByName)
+    }
+
     // Centroid definitions representing architectural states
     const centroids = [
       new THREE.Vector3(0, 0.5, 0),    // Hero (Center)
@@ -720,20 +758,26 @@ export function ArtificerInferenceCloud() {
     centroids[3].add(new THREE.Vector3(Math.cos(time * 1.2) * 0.25, 0, Math.sin(time) * 0.45))
 
     if (pointsRef.current && geomRef.current) {
-      pointsRef.current.rotation.y = time * 0.025
-      pointsRef.current.rotation.z = Math.sin(time * 0.04) * 0.04
-      
+      // Keep points container rotation strictly at 0 to match World coordinates perfectly, 
+      // avoiding coordinate desynchronization with moving skeletal bones.
       const posAttr = geomRef.current.getAttribute('position') as THREE.BufferAttribute
       const positionsArray = posAttr.array as Float32Array
+
+      // Pre-calculate quaternion for beautiful, low-overhead cosmic sphere rotation inside the loop
+      const sphereRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, time * 0.025, Math.sin(time * 0.04) * 0.04))
+      const tempSphere = new THREE.Vector3()
 
       for (let i = 0; i < count; i++) {
         const i3 = i * 3
         const cid = clusterIds[i]
         const friction = randomFriction[i]
 
-        const sphereX = spherePositions[i3]
-        const sphereY = spherePositions[i3 + 1]
-        const sphereZ = spherePositions[i3 + 2]
+        // Rotate the Fibonacci landing sphere position in local space manually to retain rotation aesthetics
+        tempSphere.set(spherePositions[i3], spherePositions[i3 + 1], spherePositions[i3 + 2])
+        tempSphere.applyQuaternion(sphereRotation)
+        const sphereX = tempSphere.x
+        const sphereY = tempSphere.y
+        const sphereZ = tempSphere.z
 
         const centroid = centroids[cid]
         const noiseX = Math.sin(i * 0.05 + time) * 1.0
@@ -750,36 +794,58 @@ export function ArtificerInferenceCloud() {
         if (phoenix) {
           const isLeft = i < 900
           const isTail = i >= 1700
+          const isRight = !isLeft && !isTail
           
-          let localAttractor = new THREE.Vector3()
-
-          if (isTail) {
-            const progress = (i - 1700) / 300
-            localAttractor.set(
-              Math.sin(time * 3.2 - progress * 4.0) * 0.7,
-              -1.2 - progress * 3.5,
-              -progress * 4.5
-            )
-          } else {
-            const progress = isLeft ? (i / 900) : ((i - 900) / 800)
-            const side = isLeft ? -1 : 1
-            const flapSpeed = 4.2
-            const phaseOffset = progress * 2.0
-            const flapY = Math.sin(time * flapSpeed - phaseOffset) * 1.8
+          const bonesList = isLeft ? leftBonesRef.current : (isRight ? rightBonesRef.current : tailBonesRef.current)
+          
+          if (bonesList.length > 0) {
+            const progress = isLeft ? (i / 900) : (isRight ? ((i - 900) / 800) : ((i - 1700) / 300))
             
-            localAttractor.set(
-              side * (1.0 + progress * 5.0),
-              flapY * (0.28 + progress * 0.72),
-              -progress * 1.6
-            )
-          }
+            // Interpolate cleanly along the active bone chains for continuous distribution
+            const boneFloatIdx = progress * (bonesList.length - 1)
+            const boneIdxA = Math.floor(boneFloatIdx)
+            const boneIdxB = Math.min(boneIdxA + 1, bonesList.length - 1)
+            const t = boneFloatIdx - boneIdxA
 
-          // Convert attractor points from local model coordinates to global coordinates
-          localAttractor.applyMatrix4(phoenix.matrixWorld)
-          
-          wingTargetX = localAttractor.x + (Math.random() - 0.5) * 0.18
-          wingTargetY = localAttractor.y + (Math.random() - 0.5) * 0.18
-          wingTargetZ = localAttractor.z + (Math.random() - 0.5) * 0.18
+            const posA = new THREE.Vector3().setFromMatrixPosition(bonesList[boneIdxA].matrixWorld)
+            const posB = new THREE.Vector3().setFromMatrixPosition(bonesList[boneIdxB].matrixWorld)
+            
+            const attractor = new THREE.Vector3().copy(posA).lerp(posB, t)
+            
+            // Add slight natural feather dispersion
+            wingTargetX = attractor.x + (Math.random() - 0.5) * 0.22
+            wingTargetY = attractor.y + (Math.random() - 0.5) * 0.22
+            wingTargetZ = attractor.z + (Math.random() - 0.5) * 0.22
+          } else {
+            // High-fidelity fallback math if bone instances are still loading in canvas
+            const side = isLeft ? -1 : 1
+            const progress = isLeft ? (i / 900) : (isRight ? ((i - 900) / 800) : ((i - 1700) / 300))
+            const localAttractor = new THREE.Vector3()
+            
+            if (isTail) {
+              localAttractor.set(
+                Math.sin(time * 3.2 - progress * 4.0) * 0.7,
+                -1.2 - progress * 3.5,
+                -progress * 4.5
+              )
+            } else {
+              const flapSpeed = 4.2
+              const phaseOffset = progress * 2.0
+              const flapY = Math.sin(time * flapSpeed - phaseOffset) * 1.8
+              
+              localAttractor.set(
+                side * (1.0 + progress * 5.0),
+                flapY * (0.28 + progress * 0.72),
+                -progress * 1.6
+              )
+            }
+            
+            localAttractor.applyMatrix4(phoenix.matrixWorld)
+            
+            wingTargetX = localAttractor.x + (Math.random() - 0.5) * 0.18
+            wingTargetY = localAttractor.y + (Math.random() - 0.5) * 0.18
+            wingTargetZ = localAttractor.z + (Math.random() - 0.5) * 0.18
+          }
         }
 
         // Blend layouts based on scroll positions
@@ -869,9 +935,6 @@ export default function PhoenixScene() {
 
           {/* Ground shadow to ground the model in physical space */}
           <ContactShadows position={[0, -3.0, 0]} opacity={0.5} scale={10} blur={2} far={4} />
-
-          {/* Live K-Means clustering particle sphere wrapping the wings */}
-          <ArtificerInferenceCloud />
 
           <Suspense fallback={<CanvasLoader />}>
             <PhoenixSceneContent />
