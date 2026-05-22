@@ -274,11 +274,69 @@ export default function Overlay() {
           { type: 'output', text: 'AVAILABLE OPERATIONS:' },
           { type: 'output', text: '  help                      - Display active intelligence operations.' },
           { type: 'output', text: '  status                    - Read WebGL engine and Edge ML vector variables.' },
-          { type: 'output', text: '  clear                     - Flush terminal output buffer.' },
+          { type: 'output', text: '  skills                    - Output technical stack & proficiencies.' },
+          { type: 'output', text: '  resume                    - Print localized academic and project credentials.' },
+          { type: 'output', text: '  contact                   - Display secure comms channels.' },
+          { type: 'output', text: '  download                  - Fetch full resume payload (.pdf).' },
           { type: 'output', text: '  search <concept>          - Run WASM semantic search and sweeps 3D camera to target.' },
           { type: 'output', text: '  query <question>          - Stream RAG response from academic REDSEA & Nexturn papers.' },
+          { type: 'output', text: '  clear                     - Flush terminal output buffer.' },
           { type: 'output', text: '  exit                      - Flush terminal overlay and restore visual glass UI.' }
         ])
+        break
+
+      case 'skills':
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'output', text: '> [ CORE LANGUAGES ]: C++ (DSA), Python, JavaScript, TypeScript, GLSL' },
+          { type: 'output', text: '> [ AI/ML STACK ]: Ollama, Hugging Face, NumPy, Pandas, Transformers.js' },
+          { type: 'output', text: '> [ ARCHITECTURE ]: Next.js, React, Tailwind CSS, Three.js, WebGL' },
+          { type: 'output', text: '> [ INFRASTRUCTURE ]: Vercel, Git, GitHub Pipelines' }
+        ])
+        break
+
+      case 'resume':
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'system', text: 'LOADING SECURE PAYLOAD...' },
+          { type: 'output', text: '=========================================' },
+          { type: 'system', text: 'NAME: Kunal Saini // Artificer // ML Developer Student' },
+          { type: 'system', text: 'LOCATION: Delhi, India // SYSTEM ONLINE' },
+          { type: 'output', text: '=========================================' },
+          { type: 'output', text: 'EDUCATION:' },
+          { type: 'output', text: ' - B.Tech in Artificial Intelligence & Machine Learning' },
+          { type: 'output', text: '   MDU University, Delhi Institute of Technology & Management (2024 - 2028)' },
+          { type: 'output', text: '=========================================' },
+          { type: 'output', text: 'EXPERIENCE & PROJECTS:' },
+          { type: 'output', text: ' - Nexturn Connect [Tech Head]: Engineered core pipeline & centralized architecture.' },
+          { type: 'output', text: ' - Project REDSEA: Developed and deployed scalable Reddit Sentiment Analyzer.' },
+          { type: 'output', text: ' - Kreative Spark [Co-Founder]: Scaled media-based digital agency.' },
+          { type: 'output', text: ' - Production Apps: Full-stack deployment for Printingpoint.net & santeriors.com.' },
+          { type: 'output', text: '=========================================' },
+          { type: 'output', text: 'CERTIFICATIONS:' },
+          { type: 'output', text: ' - GEN-AI VAC (ICE) - Scored 90+' },
+          { type: 'output', text: ' - Applied LLMs, Model Testing & Deployment (Coding Blocks)' },
+          { type: 'output', text: '=========================================' },
+          { type: 'system', text: "Type 'download' to fetch full PDF." }
+        ])
+        break
+
+      case 'contact':
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'system', text: 'INITIATING SECURE HANDSHAKE...' },
+          { type: 'output', text: 'EMAIL: kunalsaini20090360@gmail.com' },
+          { type: 'output', text: 'GITHUB: github.com/sainiks' },
+          { type: 'output', text: 'LINKEDIN: linkedin.com/in/kunal-saini' }
+        ])
+        break
+
+      case 'download':
+        setTerminalHistory(prev => [
+          ...prev,
+          { type: 'system', text: 'DOWNLOADING KUNAL_SAINI_RESUME.PDF... [OK]' }
+        ])
+        window.open('/Kunal_Saini_resume.pdf', '_blank')
         break
 
       case 'clear':
