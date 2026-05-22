@@ -358,7 +358,7 @@ function PhoenixSceneContent() {
           trigger: '#portfolio-container', // Main DOM container track
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 1.5, // Beautiful, slow gliding dampening
+          scrub: 0.5, // Extremely responsive, tight 1:1 synchronization with DOM
         },
       })
 

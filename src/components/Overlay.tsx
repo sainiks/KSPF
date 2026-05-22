@@ -47,7 +47,7 @@ export default function Overlay() {
           trigger: '#portfolio-container',
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 1.5,
+          scrub: 0.5,
         },
       })
 
