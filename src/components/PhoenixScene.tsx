@@ -855,7 +855,7 @@ export function ArtificerInferenceCloud() {
 
         if (scroll > 0.02) {
           const blendToClustering = THREE.MathUtils.clamp((scroll - 0.02) * 5.0, 0, 1)
-          const blendToWings = THREE.MathUtils.clamp((scroll - 0.12) * 2.2, 0, 1)
+          const blendToWings = THREE.MathUtils.clamp((scroll - 0.02) * 6.0, 0, 1)
 
           // Sphere -> Cluster
           let tx = THREE.MathUtils.lerp(sphereX, clusterTargetX, blendToClustering)
