@@ -723,103 +723,111 @@ export default function Overlay() {
             </div>
           </section>
 
-          {/* PANEL 4: CINEMATIC EDITORIAL CONTACT FOOTER */}
+          {/* PANEL 4: HIGH-TECH GLASSMORPHIC CONTACT FOOTER */}
           <section className="scroll-panel panel-contact" id="contact">
-            {/* The Minimalist Editorial Grid */}
-            <div className="editorial-grid-container">
-              <div className="editorial-grid">
+            <div className="high-tech-container">
+              <div className="high-tech-grid">
                 
-                {/* Column 1: Identity & Brand */}
-                <div className="editorial-col-left">
-                  <div>
-                    <h2 className="editorial-brand-title">Artificer.</h2>
-                    <p className="editorial-brand-mono">
-                      Kunal Saini // System Online
+                {/* Card 1: Identity & Connect (Spans 5 columns on desktop) */}
+                <div className="high-tech-card high-tech-grid-col-5">
+                  <div className="high-tech-card-content">
+                    <div className="high-tech-mono-label">SECURE PAYLOAD // OVERVIEW</div>
+                    <h2 className="high-tech-title">CONNECT.</h2>
+                  </div>
+                  <div className="high-tech-card-bottom">
+                    <div className="high-tech-mono-label">SYSTEM STATUS: ONLINE</div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
+                      Kunal Saini // Artificer OS. Architecting zero-latency computational client-side AI systems and digital products using optimized neural models.
                     </p>
-                  </div>
-                  <div className="editorial-location-coordinates">
-                    DELHI, INDIA // [LAT: 28.7041, LON: 77.1025]
+                    <div style={{ marginTop: '2rem', fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'rgba(0, 210, 255, 0.4)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                      DELHI, INDIA // [LAT: 28.7041, LON: 77.1025]
+                    </div>
                   </div>
                 </div>
 
-                {/* Column 2 & 3: Architectural Resume Data */}
-                <div className="editorial-col-right">
-                  
-                  {/* Experience & Research */}
-                  <div>
-                    <div className="editorial-sec-title">
-                      / Experience & Research
+                {/* Card 2: Experience & Research (Spans 4 columns on desktop) */}
+                <div className="high-tech-card high-tech-grid-col-4">
+                  <div className="high-tech-card-content">
+                    <div className="high-tech-sec-title">
+                      / Experience & Inference
                     </div>
-                    <ul className="editorial-list">
-                      <li className="editorial-item">
-                        <span className="editorial-item-title">Nexturn Connect</span>
-                        <span className="editorial-item-desc">Tech Head // System Architecture</span>
+                    <ul className="high-tech-list">
+                      <li className="high-tech-item">
+                        <span className="high-tech-item-title">Nexturn Connect</span>
+                        <span className="high-tech-item-desc">Tech Head // System Architecture</span>
                       </li>
-                      <li className="editorial-item">
-                        <span className="editorial-item-title">Project REDSEA</span>
-                        <span className="editorial-item-desc">Academic Research // Sentiment Analysis</span>
+                      <li className="high-tech-item">
+                        <span className="high-tech-item-title">Project REDSEA</span>
+                        <span className="high-tech-item-desc">Academic Research // Sentiment Analysis</span>
                       </li>
-                      <li className="editorial-item">
-                        <span className="editorial-item-title">Kreative Spark</span>
-                        <span className="editorial-item-desc">Co-Founder // Digital Agency</span>
+                      <li className="high-tech-item">
+                        <span className="high-tech-item-title">Kreative Spark</span>
+                        <span className="high-tech-item-desc">Co-Founder // Digital Agency</span>
                       </li>
                     </ul>
                   </div>
-
-                  {/* Background & Stack */}
-                  <div>
-                    <div className="editorial-sec-title">
-                      / Background & Stack
-                    </div>
-                    <ul className="editorial-list">
-                      <li className="editorial-item">
-                        <span className="editorial-item-title">MDU University</span>
-                        <span className="editorial-item-desc">B.Tech AI & ML (2024 - 2028)</span>
-                      </li>
-                      <li className="editorial-item">
-                        <span className="editorial-item-title">Core Intelligence</span>
-                        <span className="editorial-item-desc">Python, C++, PyTorch, WebGL</span>
-                      </li>
-                      <li className="editorial-download-wrapper">
-                        <a href="/Kunal_Saini_resume.pdf" target="_blank" rel="noopener noreferrer" className="editorial-download-link">
-                          [ Download Full Record ]
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-
                 </div>
-              </div>
 
-              {/* The Massive Cinematic Handshake Footer */}
-              <div className="editorial-handshake-wrapper">
-                <a 
-                  href="mailto:kunalsaini20090360@gmail.com" 
-                  className="editorial-handshake-banner"
-                >
-                  <div className="editorial-handshake-content">
-                    <span className="editorial-handshake-text">
-                      Initiate Connection.
-                    </span>
+                {/* Card 3: Academics & Stack (Spans 3 columns on desktop) */}
+                <div className="high-tech-card high-tech-grid-col-3">
+                  <div className="high-tech-card-content">
+                    <div className="high-tech-sec-title">
+                      / Background & Intel
+                    </div>
+                    <ul className="high-tech-list">
+                      <li className="high-tech-item">
+                        <span className="high-tech-item-title">MDU University</span>
+                        <span className="high-tech-item-desc">B.Tech AI & ML (2024 - 2028)</span>
+                      </li>
+                      <li className="high-tech-item">
+                        <span className="high-tech-item-title">Core Intelligence</span>
+                        <span className="high-tech-item-desc">Python, C++, PyTorch, WebGL</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <a 
+                      href="/Kunal_Saini_resume.pdf" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="high-tech-download-btn"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      [ Download Full Record ]
+                    </a>
+                  </div>
+                </div>
+
+                {/* Full-width Connection Button (Spans 12 columns) */}
+                <div className="high-tech-grid-col-12">
+                  <a 
+                    href="mailto:kunalsaini20090360@gmail.com" 
+                    className="high-tech-connect-btn"
+                  >
+                    <div>
+                      <div className="high-tech-connect-email">
+                        kunalsaini20090360@gmail.com
+                      </div>
+                      <span className="high-tech-connect-text">
+                        Initiate Connection
+                      </span>
+                    </div>
                     <svg 
-                      className="editorial-handshake-arrow" 
+                      className="high-tech-connect-arrow" 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                  </div>
-                  
-                  <div className="editorial-handshake-email">
-                    kunalsaini20090360@gmail.com
-                  </div>
-                  
-                  {/* Delicate hover liquid expansion line */}
-                  <div className="editorial-handshake-line"></div>
-                </a>
-              </div>
+                  </a>
+                </div>
 
+              </div>
             </div>
           </section>
 
