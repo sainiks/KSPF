@@ -74,7 +74,7 @@ interface AnimatedBone {
 }
 
 const COLOR_OBSIDIAN = new THREE.Color('#3d3d3d')
-const COLOR_GLASS = new THREE.Color('#0c1b20')
+const COLOR_SMOKED_GLASS = new THREE.Color('#0d0d0f')
 
 // Inner Content Component sitting inside R3F Canvas
 function PhoenixSceneContent() {
@@ -350,7 +350,7 @@ function PhoenixSceneContent() {
       bone.rotation.z = z + waveZ
     })
 
-    // 5. In-place material morphing: morph into refractive dark frozen glass (scroll 0.72 -> 1.0)
+    // 5. In-place material morphing: morph into refractive smoked charcoal glass (scroll 0.72 -> 1.0)
     const glassBlend = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -359,13 +359,13 @@ function PhoenixSceneContent() {
           const mat = mesh.material as THREE.MeshPhysicalMaterial
           
           // Lerp base color to deep refractive glass highlight
-          mat.color.lerpColors(COLOR_OBSIDIAN, COLOR_GLASS, glassBlend)
+          mat.color.lerpColors(COLOR_OBSIDIAN, COLOR_SMOKED_GLASS, glassBlend)
           
-          // Smoothly lerp physical characteristics
-          mat.roughness = THREE.MathUtils.lerp(0.2, 0.04, glassBlend)
-          mat.metalness = THREE.MathUtils.lerp(0.95, 0.05, glassBlend)
-          mat.transmission = THREE.MathUtils.lerp(0.0, 0.96, glassBlend)
-          mat.thickness = THREE.MathUtils.lerp(0.0, 3.2, glassBlend)
+          // Smoothly lerp physical characteristics for smoked charcoal glass crystal texture
+          mat.roughness = THREE.MathUtils.lerp(0.2, 0.08, glassBlend)
+          mat.metalness = THREE.MathUtils.lerp(0.95, 0.02, glassBlend)
+          mat.transmission = THREE.MathUtils.lerp(0.0, 0.98, glassBlend)
+          mat.thickness = THREE.MathUtils.lerp(0.0, 4.0, glassBlend)
           
           // Toggle transparency to prevent sorting artifacts until transmission is active
           mat.transparent = glassBlend > 0.02
@@ -793,6 +793,9 @@ export function ArtificerInferenceCloud() {
       const posAttr = geomRef.current.getAttribute('position') as THREE.BufferAttribute
       const positionsArray = posAttr.array as Float32Array
 
+      const colorAttr = geomRef.current.getAttribute('color') as THREE.BufferAttribute
+      const colorsArray = colorAttr.array as Float32Array
+
       // Pre-calculate quaternion for beautiful, low-overhead cosmic sphere rotation inside the loop
       const sphereRotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, time * 0.025, Math.sin(time * 0.04) * 0.04))
       const tempSphere = new THREE.Vector3()
@@ -898,26 +901,50 @@ export function ArtificerInferenceCloud() {
           targetZ = THREE.MathUtils.lerp(tz, wingTargetZ, blendToWings)
         }
 
-        // 6. Halo Vortex Transition: detach particles to form a slow circular vortex around the frozen bird (scroll 0.72 -> 1.0)
+        // 6. Serene Silver Stardust Transition: detach particles to form a slow-drifting horizontal stardust plane orbiting gently (scroll 0.72 -> 1.0)
         if (scroll > 0.72) {
           const blendToHalo = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
-          const radius = 3.5 + Math.sin(i + time * 0.2) * 1.5
-          const angle = (i * 0.02) + time * (0.05 + friction * 0.5)
-          const haloX = Math.cos(angle) * radius
-          const haloY = Math.sin(i * 0.05) * 2.5 + Math.sin(time * 0.1 + i) * 0.5
-          const haloZ = Math.sin(angle) * radius - 1.0
+          const radius = 4.0 + Math.sin(i + time * 0.1) * 2.0
+          const angle = (i * 0.01) + time * 0.02
+          const stardustX = Math.cos(angle) * radius
+          const stardustY = Math.sin(i * 0.02) * 1.5 - 1.0 // Sits low under the bird
+          const stardustZ = Math.sin(angle) * radius
 
-          targetX = THREE.MathUtils.lerp(targetX, haloX, blendToHalo)
-          targetY = THREE.MathUtils.lerp(targetY, haloY, blendToHalo)
-          targetZ = THREE.MathUtils.lerp(targetZ, haloZ, blendToHalo)
+          targetX = THREE.MathUtils.lerp(targetX, stardustX, blendToHalo)
+          targetY = THREE.MathUtils.lerp(targetY, stardustY, blendToHalo)
+          targetZ = THREE.MathUtils.lerp(targetZ, stardustZ, blendToHalo)
         }
 
         positionsArray[i3] = THREE.MathUtils.lerp(positionsArray[i3], targetX, friction)
         positionsArray[i3 + 1] = THREE.MathUtils.lerp(positionsArray[i3 + 1], targetY, friction)
         positionsArray[i3 + 2] = THREE.MathUtils.lerp(positionsArray[i3 + 2], targetZ, friction)
+
+        // Morph colors dynamically to quiet warm-silver (#c0c0c8) at the narrative ending (scroll 0.72 -> 1.0)
+        const rOrig = colors[i3]
+        const gOrig = colors[i3 + 1]
+        const bOrig = colors[i3 + 2]
+
+        if (scroll > 0.72) {
+          const blendToHalo = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
+          colorsArray[i3] = THREE.MathUtils.lerp(rOrig, 0.7529, blendToHalo)
+          colorsArray[i3 + 1] = THREE.MathUtils.lerp(gOrig, 0.7529, blendToHalo)
+          colorsArray[i3 + 2] = THREE.MathUtils.lerp(bOrig, 0.7843, blendToHalo)
+        } else {
+          colorsArray[i3] = rOrig
+          colorsArray[i3 + 1] = gOrig
+          colorsArray[i3 + 2] = bOrig
+        }
       }
 
       posAttr.needsUpdate = true
+      colorAttr.needsUpdate = true
+
+      // Dynamically fade points material opacity down to 0.25 during narrative ending
+      const mat = pointsRef.current.material as THREE.PointsMaterial
+      if (mat) {
+        const blendToHalo = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
+        mat.opacity = THREE.MathUtils.lerp(0.6, 0.25, blendToHalo)
+      }
     }
   })
 

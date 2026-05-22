@@ -723,65 +723,65 @@ export default function Overlay() {
             </div>
           </section>
 
-          {/* PANEL 4: CINEMATIC BRUTALIST CONTACT FOOTER */}
+          {/* PANEL 4: CINEMATIC EDITORIAL CONTACT FOOTER */}
           <section className="scroll-panel panel-contact" id="contact">
-            {/* The Minimalist Brutalist Grid */}
-            <div className="brutalist-grid-container">
-              <div className="brutalist-grid">
+            {/* The Minimalist Editorial Grid */}
+            <div className="editorial-grid-container">
+              <div className="editorial-grid">
                 
                 {/* Column 1: Identity & Brand */}
-                <div className="brutalist-col-left">
+                <div className="editorial-col-left">
                   <div>
-                    <h2 className="brutalist-brand-title">Artificer.</h2>
-                    <p className="brutalist-brand-mono">
+                    <h2 className="editorial-brand-title">Artificer.</h2>
+                    <p className="editorial-brand-mono">
                       Kunal Saini // System Online
                     </p>
                   </div>
-                  <div className="brutalist-location-coordinates">
+                  <div className="editorial-location-coordinates">
                     DELHI, INDIA // [LAT: 28.7041, LON: 77.1025]
                   </div>
                 </div>
 
                 {/* Column 2 & 3: Architectural Resume Data */}
-                <div className="brutalist-col-right">
+                <div className="editorial-col-right">
                   
-                  {/* Experience & Engineering */}
+                  {/* Experience & Research */}
                   <div>
-                    <div className="brutalist-sec-title">
+                    <div className="editorial-sec-title">
                       / Experience & Research
                     </div>
-                    <ul className="brutalist-list">
-                      <li className="brutalist-item">
-                        <span className="brutalist-item-title">Nexturn Connect</span>
-                        <span className="brutalist-item-desc">Tech Head // System Architecture</span>
+                    <ul className="editorial-list">
+                      <li className="editorial-item">
+                        <span className="editorial-item-title">Nexturn Connect</span>
+                        <span className="editorial-item-desc">Tech Head // System Architecture</span>
                       </li>
-                      <li className="brutalist-item">
-                        <span className="brutalist-item-title">Project REDSEA</span>
-                        <span className="brutalist-item-desc">Academic Research // Sentiment Analysis</span>
+                      <li className="editorial-item">
+                        <span className="editorial-item-title">Project REDSEA</span>
+                        <span className="editorial-item-desc">Academic Research // Sentiment Analysis</span>
                       </li>
-                      <li className="brutalist-item">
-                        <span className="brutalist-item-title">Kreative Spark</span>
-                        <span className="brutalist-item-desc">Co-Founder // Digital Agency</span>
+                      <li className="editorial-item">
+                        <span className="editorial-item-title">Kreative Spark</span>
+                        <span className="editorial-item-desc">Co-Founder // Digital Agency</span>
                       </li>
                     </ul>
                   </div>
 
                   {/* Background & Stack */}
                   <div>
-                    <div className="brutalist-sec-title">
+                    <div className="editorial-sec-title">
                       / Background & Stack
                     </div>
-                    <ul className="brutalist-list">
-                      <li className="brutalist-item">
-                        <span className="brutalist-item-title">MDU University</span>
-                        <span className="brutalist-item-desc">B.Tech AI & ML (2024 - 2028)</span>
+                    <ul className="editorial-list">
+                      <li className="editorial-item">
+                        <span className="editorial-item-title">MDU University</span>
+                        <span className="editorial-item-desc">B.Tech AI & ML (2024 - 2028)</span>
                       </li>
-                      <li className="brutalist-item">
-                        <span className="brutalist-item-title">Core Intelligence</span>
-                        <span className="brutalist-item-desc">Python, C++, PyTorch, WebGL</span>
+                      <li className="editorial-item">
+                        <span className="editorial-item-title">Core Intelligence</span>
+                        <span className="editorial-item-desc">Python, C++, PyTorch, WebGL</span>
                       </li>
-                      <li className="brutalist-download-wrapper">
-                        <a href="/Kunal_Saini_resume.pdf" target="_blank" rel="noopener noreferrer" className="brutalist-download-link">
+                      <li className="editorial-download-wrapper">
+                        <a href="/Kunal_Saini_resume.pdf" target="_blank" rel="noopener noreferrer" className="editorial-download-link">
                           [ Download Full Record ]
                         </a>
                       </li>
@@ -792,17 +792,17 @@ export default function Overlay() {
               </div>
 
               {/* The Massive Cinematic Handshake Footer */}
-              <div className="brutalist-handshake-wrapper">
+              <div className="editorial-handshake-wrapper">
                 <a 
                   href="mailto:kunalsaini20090360@gmail.com" 
-                  className="brutalist-handshake-banner"
+                  className="editorial-handshake-banner"
                 >
-                  <div className="brutalist-handshake-content">
-                    <span className="brutalist-handshake-text">
-                      INITIATE.
+                  <div className="editorial-handshake-content">
+                    <span className="editorial-handshake-text">
+                      Initiate Connection.
                     </span>
                     <svg 
-                      className="brutalist-handshake-arrow" 
+                      className="editorial-handshake-arrow" 
                       fill="none" 
                       viewBox="0 0 24 24" 
                       stroke="currentColor"
@@ -811,12 +811,12 @@ export default function Overlay() {
                     </svg>
                   </div>
                   
-                  <div className="brutalist-handshake-email">
+                  <div className="editorial-handshake-email">
                     kunalsaini20090360@gmail.com
                   </div>
                   
-                  {/* Subtle hover gradient sweep */}
-                  <div className="brutalist-handshake-sweep"></div>
+                  {/* Delicate hover liquid expansion line */}
+                  <div className="editorial-handshake-line"></div>
                 </a>
               </div>
 

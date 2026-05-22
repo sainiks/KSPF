@@ -983,33 +983,35 @@ textarea.contact-input {
   box-sizing: border-box;
 }
 
-.brutalist-grid-container {
+.editorial-grid-container {
   width: 100%;
   pointer-events: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 2.5rem;
-  background: rgba(3, 3, 3, 0.45); /* Refined obsidian shade */
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  background: rgba(3, 3, 3, 0.15); /* High translucency glass overlay */
+  backdrop-filter: blur(40px) saturate(120%);
+  -webkit-backdrop-filter: blur(40px) saturate(120%);
   transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
   box-sizing: border-box;
 }
 
-.brutalist-grid {
+.editorial-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2.5rem;
-  padding: 0 5%;
+  gap: 3.5rem;
+  padding: 0 8%;
   box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
-  .brutalist-grid {
+  .editorial-grid {
     grid-template-columns: repeat(12, 1fr);
+    gap: 4rem;
   }
 }
 
-.brutalist-col-left {
+.editorial-col-left {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1017,155 +1019,159 @@ textarea.contact-input {
 }
 
 @media (min-width: 768px) {
-  .brutalist-col-left {
-    grid-column: span 4 / span 4;
+  .editorial-col-left {
+    grid-column: span 5 / span 5;
   }
 }
 
-.brutalist-brand-title {
-  font-family: var(--font-sans);
-  font-size: 3rem;
+.editorial-brand-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 3.5rem;
   font-weight: 300;
-  letter-spacing: -0.04em;
+  font-style: italic;
+  letter-spacing: -0.02em;
   color: #ffffff;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.1;
 }
 
 @media (min-width: 768px) {
-  .brutalist-brand-title {
-    font-size: 4.5rem;
+  .editorial-brand-title {
+    font-size: 5rem;
   }
 }
 
-.brutalist-brand-mono {
-  font-family: var(--font-mono);
+.editorial-brand-mono {
+  font-family: var(--font-sans);
   font-size: 10px;
-  letter-spacing: 0.2em;
-  color: #8e8e93;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  color: var(--text-secondary);
   text-transform: uppercase;
   margin: 0;
 }
 
-.brutalist-location-coordinates {
-  margin-top: 2rem;
+.editorial-location-coordinates {
+  margin-top: 3rem;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: #515156;
-  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 @media (min-width: 768px) {
-  .brutalist-location-coordinates {
+  .editorial-location-coordinates {
     margin-top: 0;
   }
 }
 
-.brutalist-col-right {
+.editorial-col-right {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: #a1a1a6;
+  gap: 3.5rem;
   text-align: left;
 }
 
 @media (min-width: 768px) {
-  .brutalist-col-right {
-    grid-column: span 8 / span 8;
+  .editorial-col-right {
+    grid-column: span 7 / span 7;
     grid-template-columns: repeat(2, 1fr);
+    border-left: 1px solid rgba(255, 255, 255, 0.04);
+    padding-left: 4rem;
   }
 }
 
-.brutalist-sec-title {
-  font-family: var(--font-mono);
+.editorial-sec-title {
+  font-family: var(--font-sans);
   font-size: 9px;
-  letter-spacing: 0.1em;
-  color: #515156;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #1c1c1e;
-  padding-bottom: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
   text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.75rem;
 }
 
-.brutalist-list {
+.editorial-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
-.brutalist-item {
+.editorial-item {
   display: flex;
   flex-direction: column;
 }
 
-.brutalist-item-title {
+.editorial-item-title {
   color: #ffffff;
-  font-size: 0.9rem;
-  letter-spacing: -0.015em;
+  font-size: 0.95rem;
+  font-weight: 300;
   font-family: var(--font-sans);
+  letter-spacing: 0.5px;
   transition: color 0.3s ease;
 }
 
-.brutalist-item-desc {
-  color: #8e8e93;
-  margin-top: 0.25rem;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-}
-
-.brutalist-download-wrapper {
-  margin-top: 0.5rem;
-}
-
-.brutalist-download-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+.editorial-item-desc {
+  color: var(--text-secondary);
+  margin-top: 0.35rem;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  letter-spacing: 1px;
+}
+
+.editorial-download-wrapper {
+  margin-top: 1rem;
+}
+
+.editorial-download-link {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   padding-bottom: 0.25rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.3s ease;
 }
 
-.brutalist-download-link:hover {
-  color: #00ff87;
-  border-color: #00ff87;
-  text-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
+.editorial-download-link:hover {
+  color: #ffffff;
+  border-color: #ffffff;
 }
 
-.brutalist-handshake-wrapper {
-  margin-top: 3.5rem;
+.editorial-handshake-wrapper {
+  margin-top: 5rem;
   width: 100%;
 }
 
-.brutalist-handshake-banner {
+.editorial-handshake-banner {
   display: block;
   width: 100%;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2rem 5%;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 3rem 8%;
   text-decoration: none;
   position: relative;
   overflow: hidden;
-  transition: background-color 0.3s ease;
   box-sizing: border-box;
+  background: transparent;
+  transition: all 0.4s ease;
 }
 
-.brutalist-handshake-banner:hover {
-  background-color: rgba(255, 255, 255, 0.015);
+.editorial-handshake-banner:hover {
+  background: rgba(255, 255, 255, 0.01);
 }
 
-.brutalist-handshake-content {
+.editorial-handshake-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1173,70 +1179,78 @@ textarea.contact-input {
   z-index: 10;
 }
 
-.brutalist-handshake-text {
-  font-family: var(--font-sans);
-  font-size: 3rem;
+.editorial-handshake-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2.75rem;
   font-weight: 300;
-  letter-spacing: -0.05em;
-  color: #d1d1d6;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1;
-  transition: color 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 @media (min-width: 768px) {
-  .brutalist-handshake-text {
-    font-size: 7.5vw;
+  .editorial-handshake-text {
+    font-size: 6vw;
   }
 }
 
-.brutalist-handshake-banner:hover .brutalist-handshake-text {
+.editorial-handshake-banner:hover .editorial-handshake-text {
   color: #ffffff;
+  letter-spacing: 0.01em;
 }
 
-.brutalist-handshake-arrow {
-  width: 3rem;
-  height: 3rem;
-  color: #3a3a3c;
+.editorial-handshake-arrow {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: rgba(255, 255, 255, 0.2);
   transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 @media (min-width: 768px) {
-  .brutalist-handshake-arrow {
-    width: 5.5rem;
-    height: 5.5rem;
+  .editorial-handshake-arrow {
+    width: 4rem;
+    height: 4rem;
   }
 }
 
-.brutalist-handshake-banner:hover .brutalist-handshake-arrow {
-  color: #00D2FF;
-  transform: translateX(1.5rem);
+.editorial-handshake-banner:hover .editorial-handshake-arrow {
+  color: #ffffff;
+  transform: translateX(1rem);
 }
 
-.brutalist-handshake-email {
+.editorial-handshake-email {
   position: absolute;
-  top: 1.2rem;
-  right: 5%;
+  top: 1.5rem;
+  right: 8%;
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: #515156;
-  letter-spacing: 0.1em;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   z-index: 10;
+  transition: color 0.3s ease;
 }
 
-.brutalist-handshake-sweep {
+.editorial-handshake-banner:hover .editorial-handshake-email {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.editorial-handshake-line {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.02), transparent);
-  transform: translateX(-100%);
-  transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  height: 1px;
+  background: #ffffff;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
   pointer-events: none;
 }
 
-.brutalist-handshake-banner:hover .brutalist-handshake-sweep {
-  transform: translateX(100%);
+.editorial-handshake-banner:hover .editorial-handshake-line {
+  transform: scaleX(1);
 }
 
