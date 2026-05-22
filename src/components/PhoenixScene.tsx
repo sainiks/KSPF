@@ -512,26 +512,45 @@ function GLSLTensorField() {
   const { size, pointer } = useThree()
   const meshRef = useRef<THREE.Mesh>(null)
   const materialRef = useRef<THREE.ShaderMaterial>(null)
+  const hasMoved = useRef(false)
+
+  useEffect(() => {
+    const handleMove = () => {
+      hasMoved.current = true
+    }
+    window.addEventListener('mousemove', handleMove)
+    window.addEventListener('touchmove', handleMove)
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('touchmove', handleMove)
+    }
+  }, [])
   
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.u_time.value = state.clock.getElapsedTime()
-      // Smoothly interpolate mouse coordinate for visual fluidness
-      const targetX = pointer.x
-      const targetY = pointer.y
-      const currentX = materialRef.current.uniforms.u_mouse.value.x
-      const currentY = materialRef.current.uniforms.u_mouse.value.y
       
-      materialRef.current.uniforms.u_mouse.value.set(
-        THREE.MathUtils.lerp(currentX, targetX, 0.05),
-        THREE.MathUtils.lerp(currentY, targetY, 0.05)
-      )
+      if (hasMoved.current) {
+        // Smoothly interpolate mouse coordinate for visual fluidness
+        const targetX = pointer.x
+        const targetY = pointer.y
+        const currentX = materialRef.current.uniforms.u_mouse.value.x
+        const currentY = materialRef.current.uniforms.u_mouse.value.y
+        
+        materialRef.current.uniforms.u_mouse.value.set(
+          THREE.MathUtils.lerp(currentX, targetX, 0.05),
+          THREE.MathUtils.lerp(currentY, targetY, 0.05)
+        )
+      } else {
+        // Keep it completely offscreen on load
+        materialRef.current.uniforms.u_mouse.value.set(0, -999)
+      }
     }
   })
   
   const uniforms = useMemo(() => ({
     u_time: { value: 0 },
-    u_mouse: { value: new THREE.Vector2(0, 0) },
+    u_mouse: { value: new THREE.Vector2(0, -999) },
     u_resolution: { value: new THREE.Vector2(size.width, size.height) }
   }), [])
   
@@ -561,22 +580,25 @@ function GLSLTensorField() {
           varying vec2 vUv;
           
           void main() {
-            vec2 uv = vUv;
-            
-            // Adjust grid scale for screen aspect ratio
-            vec2 gridScale = vec2(45.0, 45.0 * (u_resolution.y / u_resolution.x));
+            // Perfect screen-space UV coordinates covering 100% of the screen
+            vec2 uv = gl_FragCoord.xy / u_resolution.xy;
             
             // Map mouse to UV space [0, 1]
             vec2 mouseUv = u_mouse * 0.5 + 0.5;
             
-            float distToMouse = distance(uv, mouseUv);
+            // Correct for screen aspect ratio to get circular mouse distortion
+            vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);
+            float distToMouse = distance(uv * aspect, mouseUv * aspect);
             
             // Distortion well (gravity falloff)
             float gravity = smoothstep(0.42, 0.0, distToMouse);
-            vec2 toMouse = uv - mouseUv;
+            vec2 toMouse = (uv - mouseUv) * aspect;
             
-            // Distort UVs
-            vec2 distortedUv = uv - normalize(toMouse + 0.0001) * gravity * 0.038;
+            // Distort UVs (dividing by aspect corrects the direction back to screen space)
+            vec2 distortedUv = uv - (toMouse / (length(toMouse) + 0.0001)) * gravity * 0.038 / aspect;
+            
+            // Adjust grid scale for screen aspect ratio to get perfect square grid cells
+            vec2 gridScale = vec2(45.0, 45.0 * (u_resolution.y / u_resolution.x));
             
             // Generate matrix grid weights
             vec2 gridUv = fract(distortedUv * gridScale - 0.5) - 0.5;
@@ -597,11 +619,11 @@ function GLSLTensorField() {
             
             float gridIntensity = (dotMask * (0.28 + nodePulse * 0.72) + lineMask);
             
-            // Interactive glow
+            // Interactive glow (uses aspect-corrected distance for perfect circular glow)
             float mouseGlow = exp(-distToMouse * 3.8) * 0.42;
             
-            // Curated deep obsidian color design
-            vec3 bgColor = vec3(0.006, 0.006, 0.01);
+            // Curated deep obsidian color design matching visual depth fog (#030303)
+            vec3 bgColor = vec3(0.0117, 0.0117, 0.0117);
             vec3 gridColor = vec3(0.0, 0.82, 1.0) * gridIntensity; // Cyan grid
             vec3 pulseColor = vec3(0.0, 1.0, 0.53) * dotMask * nodePulse * 0.48; // Neon green weights
             vec3 glowColor = vec3(0.0, 0.82, 1.0) * mouseGlow;
