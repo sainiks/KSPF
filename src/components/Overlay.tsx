@@ -40,7 +40,7 @@ export default function Overlay() {
       const heroPanel = containerRef.current!.querySelector('.panel-hero')
       const projectsPanel = containerRef.current!.querySelector('.panel-left')
       const aboutPanel = containerRef.current!.querySelector('.panel-right')
-      const contactPanel = containerRef.current!.querySelector('.panel-center')
+      const contactPanel = containerRef.current!.querySelector('.panel-contact')
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -723,57 +723,103 @@ export default function Overlay() {
             </div>
           </section>
 
-          {/* PANEL 4: CONTACT */}
-          <section className="scroll-panel panel-center" id="contact">
-            <div className="animate-content glass-panel" style={{ width: '100%', maxWidth: '550px' }}>
-              <div className="contact-header">
-                <h2>Establish Connection</h2>
-                <p style={{ color: '#a1a1a6', fontSize: '0.95rem' }}>
-                  Looking to build something monumental? Drop a transmission.
-                </p>
-              </div>
-              
-              <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
-                <div className="form-group">
-                  <label htmlFor="name">IDENTIFIER</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    className="contact-input" 
-                    placeholder="Your Name" 
-                    required
-                  />
-                </div>
+          {/* PANEL 4: CINEMATIC BRUTALIST CONTACT FOOTER */}
+          <section className="scroll-panel panel-contact" id="contact">
+            {/* The Minimalist Brutalist Grid */}
+            <div className="brutalist-grid-container">
+              <div className="brutalist-grid">
                 
-                <div className="form-group">
-                  <label htmlFor="email">COMMS CHANNEL</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    className="contact-input" 
-                    placeholder="your@email.com" 
-                    required
-                  />
+                {/* Column 1: Identity & Brand */}
+                <div className="brutalist-col-left">
+                  <div>
+                    <h2 className="brutalist-brand-title">Artificer.</h2>
+                    <p className="brutalist-brand-mono">
+                      Kunal Saini // System Online
+                    </p>
+                  </div>
+                  <div className="brutalist-location-coordinates">
+                    DELHI, INDIA // [LAT: 28.7041, LON: 77.1025]
+                  </div>
                 </div>
-                
-                <div className="form-group">
-                  <label htmlFor="message">TRANSMISSION DATA</label>
-                  <textarea 
-                    id="message" 
-                    className="contact-input" 
-                    placeholder="Describe your vision..." 
-                    required
-                  />
-                </div>
-                
-                <button type="submit" className="glow-button" style={{ marginTop: '0.5rem', width: '100%' }}>
-                  SEND TRANSMISSION
-                </button>
-              </form>
 
-              <p className="footer-text">
-                © {new Date().getFullYear()} Artificer. Crafted with blood, metal, and code.
-              </p>
+                {/* Column 2 & 3: Architectural Resume Data */}
+                <div className="brutalist-col-right">
+                  
+                  {/* Experience & Engineering */}
+                  <div>
+                    <div className="brutalist-sec-title">
+                      / Experience & Research
+                    </div>
+                    <ul className="brutalist-list">
+                      <li className="brutalist-item">
+                        <span className="brutalist-item-title">Nexturn Connect</span>
+                        <span className="brutalist-item-desc">Tech Head // System Architecture</span>
+                      </li>
+                      <li className="brutalist-item">
+                        <span className="brutalist-item-title">Project REDSEA</span>
+                        <span className="brutalist-item-desc">Academic Research // Sentiment Analysis</span>
+                      </li>
+                      <li className="brutalist-item">
+                        <span className="brutalist-item-title">Kreative Spark</span>
+                        <span className="brutalist-item-desc">Co-Founder // Digital Agency</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Background & Stack */}
+                  <div>
+                    <div className="brutalist-sec-title">
+                      / Background & Stack
+                    </div>
+                    <ul className="brutalist-list">
+                      <li className="brutalist-item">
+                        <span className="brutalist-item-title">MDU University</span>
+                        <span className="brutalist-item-desc">B.Tech AI & ML (2024 - 2028)</span>
+                      </li>
+                      <li className="brutalist-item">
+                        <span className="brutalist-item-title">Core Intelligence</span>
+                        <span className="brutalist-item-desc">Python, C++, PyTorch, WebGL</span>
+                      </li>
+                      <li className="brutalist-download-wrapper">
+                        <a href="/Kunal_Saini_resume.pdf" target="_blank" rel="noopener noreferrer" className="brutalist-download-link">
+                          [ Download Full Record ]
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* The Massive Cinematic Handshake Footer */}
+              <div className="brutalist-handshake-wrapper">
+                <a 
+                  href="mailto:kunalsaini20090360@gmail.com" 
+                  className="brutalist-handshake-banner"
+                >
+                  <div className="brutalist-handshake-content">
+                    <span className="brutalist-handshake-text">
+                      INITIATE.
+                    </span>
+                    <svg 
+                      className="brutalist-handshake-arrow" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={1} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </div>
+                  
+                  <div className="brutalist-handshake-email">
+                    kunalsaini20090360@gmail.com
+                  </div>
+                  
+                  {/* Subtle hover gradient sweep */}
+                  <div className="brutalist-handshake-sweep"></div>
+                </a>
+              </div>
+
             </div>
           </section>
 

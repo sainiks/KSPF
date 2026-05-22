@@ -73,6 +73,9 @@ interface AnimatedBone {
   z: number
 }
 
+const COLOR_OBSIDIAN = new THREE.Color('#3d3d3d')
+const COLOR_GLASS = new THREE.Color('#0c1b20')
+
 // Inner Content Component sitting inside R3F Canvas
 function PhoenixSceneContent() {
   const phoenixGroupRef = useRef<THREE.Group>(null)
@@ -292,6 +295,10 @@ function PhoenixSceneContent() {
   // R3F frame loop driving organic bone flapping and multiaxial sways
   useFrame((state) => {
     const time = state.clock.getElapsedTime()
+    const scroll = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight || 1)
+
+    // Calculate organic freeze factor: slow down sways and flaps down to 0 at the Narrative Ending (scroll 0.72 -> 1.0)
+    const freezeFactor = THREE.MathUtils.clamp((1.0 - scroll) / 0.28, 0, 1)
 
     // 1. Fluid, waving wing flap
     const speed = 4.2
@@ -300,14 +307,14 @@ function PhoenixSceneContent() {
     leftWingBones.current.forEach(({ bone, depth, x, z }) => {
       // Phase shifts down the wing tip
       const phaseOffset = depth * 0.22
-      const wave = Math.sin(time * speed - phaseOffset) * amplitude
+      const wave = Math.sin(time * speed - phaseOffset) * amplitude * freezeFactor
       bone.rotation.z = z + wave
       bone.rotation.x = x + wave * 0.15
     })
 
     rightWingBones.current.forEach(({ bone, depth, x, z }) => {
       const phaseOffset = depth * 0.22
-      const wave = Math.sin(time * speed - phaseOffset) * amplitude
+      const wave = Math.sin(time * speed - phaseOffset) * amplitude * freezeFactor
       // Mirror Z-axis flap and roll on the right side
       bone.rotation.z = z - wave
       bone.rotation.x = x - wave * 0.15
@@ -316,7 +323,7 @@ function PhoenixSceneContent() {
     // 2. Snake-like horizontal tail feather sway
     tailBones.current.forEach(({ bone, depth, y, z }) => {
       const phaseOffset = depth * 0.35
-      const wave = Math.sin(time * 2.2 - phaseOffset) * 0.12
+      const wave = Math.sin(time * 2.2 - phaseOffset) * 0.12 * freezeFactor
       bone.rotation.y = y + wave
       bone.rotation.z = z + wave * 0.5
     })
@@ -324,23 +331,46 @@ function PhoenixSceneContent() {
     // 3. Gentle neck breathing/head stabilization sways
     neckBones.current.forEach(({ bone, depth, x }) => {
       const phaseOffset = depth * 0.18
-      const wave = Math.sin(time * 1.5 - phaseOffset) * 0.03
+      const wave = Math.sin(time * 1.5 - phaseOffset) * 0.03 * freezeFactor
       bone.rotation.x = x + wave
     })
 
     if (headBoneRef.current) {
       const { bone, x } = headBoneRef.current
-      bone.rotation.x = x + Math.sin(time * 1.5) * 0.02
+      bone.rotation.x = x + Math.sin(time * 1.5) * 0.02 * freezeFactor
     }
 
     // 4. Breathtaking fluid sways for flowing hair & feather crests (B_Hair_ bones)
     // Ensures all secondary wing/tail plumage planes move dynamically and feel alive.
     hairBones.current.forEach(({ bone, depth, y, z }) => {
       const phaseOffset = depth * 0.3
-      const waveY = Math.sin(time * 1.8 - phaseOffset) * 0.08
-      const waveZ = Math.cos(time * 1.8 - phaseOffset) * 0.05
+      const waveY = Math.sin(time * 1.8 - phaseOffset) * 0.08 * freezeFactor
+      const waveZ = Math.cos(time * 1.8 - phaseOffset) * 0.05 * freezeFactor
       bone.rotation.y = y + waveY
       bone.rotation.z = z + waveZ
+    })
+
+    // 5. In-place material morphing: morph into refractive dark frozen glass (scroll 0.72 -> 1.0)
+    const glassBlend = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        if (mesh.material && (mesh.material as THREE.MeshPhysicalMaterial).isMeshPhysicalMaterial) {
+          const mat = mesh.material as THREE.MeshPhysicalMaterial
+          
+          // Lerp base color to deep refractive glass highlight
+          mat.color.lerpColors(COLOR_OBSIDIAN, COLOR_GLASS, glassBlend)
+          
+          // Smoothly lerp physical characteristics
+          mat.roughness = THREE.MathUtils.lerp(0.2, 0.04, glassBlend)
+          mat.metalness = THREE.MathUtils.lerp(0.95, 0.05, glassBlend)
+          mat.transmission = THREE.MathUtils.lerp(0.0, 0.96, glassBlend)
+          mat.thickness = THREE.MathUtils.lerp(0.0, 3.2, glassBlend)
+          
+          // Toggle transparency to prevent sorting artifacts until transmission is active
+          mat.transparent = glassBlend > 0.02
+        }
+      }
     })
   })
 
@@ -387,21 +417,21 @@ function PhoenixSceneContent() {
         duration: 0.7,
       }, 1.15)
 
-      // 3. Dwell in About (1.85s to 2.15s), then sweep to Contact (Center, Zoomed Out behind form)
+      // 3. Dwell in About (1.85s to 2.15s), then sweep to Contact (Center, elevated in the empty top 60% viewport)
       .to(group.position, {
-        x: 0,               // Return center
-        y: 0.4,             // Perfectly align behind glass contact form
-        z: -2.8,            // Zoom out behind glass card
+        x: 0,               // Center perfectly
+        y: 0.8,             // Elevate high into empty space above brutalist grid
+        z: 2.2,             // Pull close enough to reveal high-fidelity detail
         ease: 'power2.inOut',
         duration: 0.7,
       }, 2.15)
 
-      // 4. Dwell in Contact (2.85s to 3.15s), then plunge into the deep dark abyss
+      // 4. Narrative Ending Contact Dwell (2.85s to 4.0s) - Keep position stable instead of diving
       .to(group.position, {
         x: 0,
-        y: -3.5,            // Steep downward dive
-        z: -12.0,           // Epic deep-dive straight back into pitch black abyss
-        ease: 'power2.in',
+        y: 0.8,
+        z: 2.2,
+        ease: 'none',
         duration: 0.85,
       }, 3.15)
 
@@ -429,19 +459,19 @@ function PhoenixSceneContent() {
 
       // 3. Sweep rotation: Graceful sweeping turn to face directly towards user (y = Math.PI * 2.0)
       .to(group.rotation, {
-        x: 0.12,
-        y: Math.PI * 2.0,   // Face directly forward to the user behind the form (completing a gorgeous 360 spin from projects/about)
-        z: 0,               // Level wings, stable hover
+        x: 0.0,             // Pitch completely level
+        y: Math.PI * 2.0,   // Face directly forward
+        z: 0.0,             // Wings level, stable hover
         ease: 'power2.inOut',
         duration: 0.7,
       }, 2.15)
 
-      // 4. Final sweep: Plunge away from camera into the screen depth (facing away: Math.PI * 3.0)
+      // 4. Narrative Ending Contact Dwell (2.85s to 4.0s) - Introduce slow, majestic, icy turn to show glass facets
       .to(group.rotation, {
-        x: 1.2,             // Steep pitch down
-        y: Math.PI * 3.0,   // Spin and turn away into the abyss depth
-        z: -0.2,
-        ease: 'power2.in',
+        x: 0.0,
+        y: Math.PI * 2.15,  // Slow turn to profile view
+        z: 0.0,
+        ease: 'power1.out',
         duration: 0.85,
       }, 3.15)
 
@@ -866,6 +896,20 @@ export function ArtificerInferenceCloud() {
           targetX = THREE.MathUtils.lerp(tx, wingTargetX, blendToWings)
           targetY = THREE.MathUtils.lerp(ty, wingTargetY, blendToWings)
           targetZ = THREE.MathUtils.lerp(tz, wingTargetZ, blendToWings)
+        }
+
+        // 6. Halo Vortex Transition: detach particles to form a slow circular vortex around the frozen bird (scroll 0.72 -> 1.0)
+        if (scroll > 0.72) {
+          const blendToHalo = THREE.MathUtils.clamp((scroll - 0.72) / 0.28, 0, 1)
+          const radius = 3.5 + Math.sin(i + time * 0.2) * 1.5
+          const angle = (i * 0.02) + time * (0.05 + friction * 0.5)
+          const haloX = Math.cos(angle) * radius
+          const haloY = Math.sin(i * 0.05) * 2.5 + Math.sin(time * 0.1 + i) * 0.5
+          const haloZ = Math.sin(angle) * radius - 1.0
+
+          targetX = THREE.MathUtils.lerp(targetX, haloX, blendToHalo)
+          targetY = THREE.MathUtils.lerp(targetY, haloY, blendToHalo)
+          targetZ = THREE.MathUtils.lerp(targetZ, haloZ, blendToHalo)
         }
 
         positionsArray[i3] = THREE.MathUtils.lerp(positionsArray[i3], targetX, friction)
